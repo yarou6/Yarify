@@ -1,0 +1,74 @@
+﻿<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MVVM.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <Color x:Key="BgPrimary">#FF121212</Color>
+        <Color x:Key="BgSecondary">#FF1D1D1D</Color>
+        <Color x:Key="BgCard">#FF242424</Color>
+        <Color x:Key="GreenPrimary">#FF1DB954</Color>
+        <Color x:Key="GreenHover">#FF2CDA65</Color>
+        <Color x:Key="TextPrimary">#FFFFFFFF</Color>
+        <Color x:Key="TextMuted">#FFB3B3B3</Color>
+
+        <SolidColorBrush x:Key="BgPrimaryBrush" Color="{StaticResource BgPrimary}"/>
+        <SolidColorBrush x:Key="BgSecondaryBrush" Color="{StaticResource BgSecondary}"/>
+        <SolidColorBrush x:Key="BgCardBrush" Color="{StaticResource BgCard}"/>
+        <SolidColorBrush x:Key="GreenPrimaryBrush" Color="{StaticResource GreenPrimary}"/>
+        <SolidColorBrush x:Key="GreenHoverBrush" Color="{StaticResource GreenHover}"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}"/>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+
+        <Style Selector="Window">
+            <Setter Property="Background" Value="{StaticResource BgPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="FontFamily" Value="Montserrat, Segoe UI, Sans-Serif"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{StaticResource BgSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="#FF404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource GreenPrimaryBrush}"/>
+            <Setter Property="Foreground" Value="#FF000000"/>
+            <Setter Property="CornerRadius" Value="999"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="MinHeight" Value="42"/>
+        </Style>
+
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="{StaticResource GreenHoverBrush}"/>
+        </Style>
+
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="#FF6E6E6E"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="999"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="MinHeight" Value="42"/>
+        </Style>
+
+        <Style Selector="Button.link">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Application.Styles>
+</Application>

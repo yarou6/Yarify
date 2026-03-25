@@ -1,0 +1,58 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:MVVM.ViewModels"
+        x:DataType="vm:RegisterViewModel"
+        mc:Ignorable="d"
+        d:DesignWidth="980"
+        d:DesignHeight="680"
+        x:Class="MVVM.Views.RegisterWindow"
+        Title="Yarify Register"
+        Width="980"
+        Height="680"
+        MinWidth="860"
+        MinHeight="620"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid ColumnDefinitions="1.05*,1*">
+        <Border Grid.Column="0" Background="#FF181818" Padding="44">
+            <StackPanel VerticalAlignment="Center" Spacing="16">
+                <TextBlock FontSize="18" Foreground="{StaticResource TextMutedBrush}" Text="YARIFY"/>
+                <TextBlock FontSize="48" FontWeight="Bold" TextWrapping="Wrap" Text="Создай свой музыкальный профиль."/>
+                <TextBlock FontSize="18" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="Регистрация подключит тебя."/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="1" Background="{StaticResource BgCardBrush}" Padding="36">
+            <StackPanel Width="370" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="11">
+                <TextBlock FontSize="28" FontWeight="Bold" Text="Регистрация"/>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Логин"/>
+                <TextBox Text="{Binding Login}" Watermark="your_login"/>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Email"/>
+                <TextBox Text="{Binding Email}" Watermark="you@email.com"/>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Display Name"/>
+                <TextBox Text="{Binding DisplayName}" Watermark="Ваше имя в приложении"/>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Пароль"/>
+                <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="********"/>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Повтор пароля"/>
+                <TextBox Text="{Binding ConfirmPassword}" PasswordChar="*" Watermark="********"/>
+
+                <Button Classes="primary" Content="Создать аккаунт" Command="{Binding RegisterCommand}" Margin="0,6,0,0"/>
+
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0,8,0,0">
+                    <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Уже есть аккаунт?"/>
+                    <Button Classes="link" Content="Войти" Command="{Binding BackToLoginCommand}"/>
+                </StackPanel>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Text="{Binding Status}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

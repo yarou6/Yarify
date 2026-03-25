@@ -1,0 +1,53 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:MVVM.ViewModels"
+        x:DataType="vm:LoginViewModel"
+        mc:Ignorable="d"
+        d:DesignWidth="980"
+        d:DesignHeight="640"
+        x:Class="MVVM.Views.LoginWindow"
+        Title="Yarify Login"
+        Width="980"
+        Height="640"
+        MinWidth="840"
+        MinHeight="560"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid ColumnDefinitions="1.1*,1*">
+        <Border Grid.Column="0" Background="#FF161616" Padding="44">
+            <StackPanel VerticalAlignment="Center" Spacing="18">
+                <TextBlock FontSize="18" Foreground="{StaticResource TextMutedBrush}" Text="YARIFY"/>
+                <TextBlock FontSize="52" FontWeight="Bold" TextWrapping="Wrap" Text="Музыка без пауз."/>
+                <TextBlock FontSize="18" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="Вход в аккаунт, чтобы продолжить работу с вашей медиатекой."/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="1" Background="{StaticResource BgCardBrush}" Padding="42">
+            <StackPanel Width="360" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="14">
+                <TextBlock FontSize="28" FontWeight="Bold" Text="Вход"/>
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"
+                           Text="Используйте данные аккаунта Yarify"/>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Логин"/>
+                <TextBox Text="{Binding Login}" Watermark="your_login"/>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Пароль"/>
+                <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="********"/>
+
+                <CheckBox IsChecked="{Binding RememberMe}" Content="Оставаться в сети" Margin="0,2,0,6"/>
+
+                <Button Classes="primary" Content="Войти" Command="{Binding LoginCommand}"/>
+
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0,8,0,0">
+                    <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Нет аккаунта?"/>
+                    <Button Classes="link" Content="Регистрация" Command="{Binding OpenRegisterCommand}"/>
+                </StackPanel>
+
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Text="{Binding Status}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
