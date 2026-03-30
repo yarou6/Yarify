@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API\API.csproj", "{C40F26A1-5351-4925-ACE3-85C489D598C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MVVM", "MVVM\MVVM.csproj", "{F6507755-B1CD-40C4-8560-E61EF8F5B7DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{C40F26A1-5351-4925-ACE3-85C489D598C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C40F26A1-5351-4925-ACE3-85C489D598C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C40F26A1-5351-4925-ACE3-85C489D598C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6507755-B1CD-40C4-8560-E61EF8F5B7DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6507755-B1CD-40C4-8560-E61EF8F5B7DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6507755-B1CD-40C4-8560-E61EF8F5B7DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6507755-B1CD-40C4-8560-E61EF8F5B7DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
