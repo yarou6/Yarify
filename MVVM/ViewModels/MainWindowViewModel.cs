@@ -45,6 +45,7 @@ public class MainWindowViewModel : BaseVM
 
     private string _searchText = string.Empty;
     private string _selectedGenre = "Все";
+    private string _selectedSearchType = "Все";
     private string _newPlaylistTitle = string.Empty;
     private string _newPlaylistDescription = string.Empty;
     private bool _newPlaylistIsPublic;
@@ -86,14 +87,19 @@ public class MainWindowViewModel : BaseVM
         AlbumTracks = new ObservableCollection<TrackListItemDto>();
         RecentTracks = new ObservableCollection<TrackListItemDto>();
         SubscriptionPlans = new ObservableCollection<SubscriptionPlanDto>();
+        SearchResultTracks = new ObservableCollection<TrackListItemDto>();
+        SearchResultArtists = new ObservableCollection<string>();
+        SearchResultAlbums = new ObservableCollection<string>();
+        SearchResultPlaylists = new ObservableCollection<PlaylistListItemDto>();
 
         GenreOptions = new ObservableCollection<string> { "Все", "Музыка", "Подкасты", "Аудиокниги" };
+        SearchTypeOptions = new ObservableCollection<string> { "Все", "Исполнители", "Треки", "Альбомы", "Плейлисты" };
 
         DisplayName = $"Пользователь #{authData.UserId}";
         RoleTitle = authData.RoleTitle;
 
         RefreshTracksCommand = new AsyncRelayCommand(LoadTracksAsync, () => !IsBusy);
-        SearchTracksCommand = new AsyncRelayCommand(LoadTracksAsync, () => !IsBusy);
+        SearchTracksCommand = new AsyncRelayCommand(SearchTracksAsync, () => !IsBusy);
         LogoutCommand = new AsyncRelayCommand(LogoutAsync, () => !IsBusy);
 
         LikeSelectedTrackCommand = new AsyncRelayCommand(LikeSelectedTrackAsync, () => SelectedTrack is not null);
@@ -168,6 +174,11 @@ public class MainWindowViewModel : BaseVM
     public ObservableCollection<TrackListItemDto> RecentTracks { get; }
     public ObservableCollection<string> GenreOptions { get; }
     public ObservableCollection<SubscriptionPlanDto> SubscriptionPlans { get; }
+    public ObservableCollection<TrackListItemDto> SearchResultTracks { get; }
+    public ObservableCollection<string> SearchResultArtists { get; }
+    public ObservableCollection<string> SearchResultAlbums { get; }
+    public ObservableCollection<PlaylistListItemDto> SearchResultPlaylists { get; }
+    public ObservableCollection<string> SearchTypeOptions { get; }
     public TrackListItemDto? SelectedTrack { get => _selectedTrack; set => SetProperty(ref _selectedTrack, value, RaiseCanExecutes); }
     public TrackListItemDto? SelectedLikedTrack { get => _selectedLikedTrack; set => SetProperty(ref _selectedLikedTrack, value, RaiseCanExecutes); }
     public QueueItemDto? SelectedQueueItem { get => _selectedQueueItem; set => SetProperty(ref _selectedQueueItem, value, RaiseCanExecutes); }
@@ -251,6 +262,17 @@ public class MainWindowViewModel : BaseVM
             if (!_isInitializing && !IsBusy) _ = LoadTracksAsync();
         }
     }
+    public string SelectedSearchType
+    {
+        get => _selectedSearchType;
+        set
+        {
+            if (!SetProperty(ref _selectedSearchType, value))
+                return;
+
+            NotifySearchType();
+        }
+    }
     public string NewPlaylistTitle { get => _newPlaylistTitle; set => SetProperty(ref _newPlaylistTitle, value, RaiseCanExecutes); }
     public string NewPlaylistDescription { get => _newPlaylistDescription; set => SetProperty(ref _newPlaylistDescription, value); }
     public bool NewPlaylistIsPublic { get => _newPlaylistIsPublic; set => SetProperty(ref _newPlaylistIsPublic, value); }
@@ -279,12 +301,18 @@ public class MainWindowViewModel : BaseVM
 
     public string ActiveSection { get => _activeSection; set { if (SetProperty(ref _activeSection, value)) NotifySections(); } }
     public bool IsTracksSection => ActiveSection == "tracks";
+    public bool IsSearchSection => ActiveSection == "search";
     public bool IsPremiumSection => ActiveSection == "premium";
     public bool IsLikedSection => ActiveSection == "liked";
     public bool IsQueueSection => ActiveSection == "queue";
     public bool IsPlaylistsSection => ActiveSection == "playlists";
     public bool IsArtistSection => ActiveSection == "artist";
     public bool IsAlbumSection => ActiveSection == "album";
+    public bool IsSearchAllType => SelectedSearchType == "Все";
+    public bool IsSearchArtistsType => SelectedSearchType == "Исполнители";
+    public bool IsSearchTracksType => SelectedSearchType == "Треки";
+    public bool IsSearchAlbumsType => SelectedSearchType == "Альбомы";
+    public bool IsSearchPlaylistsType => SelectedSearchType == "Плейлисты";
 
     public string ArtistHeader { get => _artistHeader; set => SetProperty(ref _artistHeader, value); }
     public string AlbumHeader { get => _albumHeader; set => SetProperty(ref _albumHeader, value); }
@@ -431,6 +459,7 @@ public class MainWindowViewModel : BaseVM
                 ? "Треки обновлены."
                 : $"Ошибка треков: {error}";
 
+            BuildSearchResults();
             OnPropertyChanged(nameof(FoundTracksText));
             if (Tracks.Count > 0 && SelectedTrack is null) SelectedTrack = Tracks[0];
             SeedRecentTracks();
@@ -439,6 +468,12 @@ public class MainWindowViewModel : BaseVM
         {
             IsBusy = false;
         }
+    }
+
+    private async Task SearchTracksAsync()
+    {
+        await LoadTracksAsync();
+        ActiveSection = string.IsNullOrWhiteSpace(SearchText) ? "tracks" : "search";
     }
 
     private async Task LoadSubscriptionPlansAsync()
@@ -460,6 +495,46 @@ public class MainWindowViewModel : BaseVM
         PremiumPlan = SubscriptionPlans.FirstOrDefault(p => !p.IsFree && p != StudentPlan)
                       ?? SubscriptionPlans.FirstOrDefault(p => ContainsToken(p.Title, "premium", "премиум"));
         SelectedSubscriptionPlan = SubscriptionPlans.FirstOrDefault(p => p.IsFree) ?? SubscriptionPlans.FirstOrDefault();
+    }
+
+    private void BuildSearchResults()
+    {
+        SearchResultTracks.Clear();
+        SearchResultArtists.Clear();
+        SearchResultAlbums.Clear();
+        SearchResultPlaylists.Clear();
+
+        foreach (var track in Tracks)
+            SearchResultTracks.Add(track);
+
+        foreach (var artist in Tracks
+                     .Select(t => t.Artist)
+                     .Where(a => !string.IsNullOrWhiteSpace(a))
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            SearchResultArtists.Add(artist);
+        }
+
+        foreach (var album in Tracks
+                     .Where(t => t.AlbumId.HasValue)
+                     .Select(t => $"Альбом #{t.AlbumId}")
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            SearchResultAlbums.Add(album);
+        }
+
+        var needle = SearchText?.Trim() ?? string.Empty;
+        var playlists = string.IsNullOrWhiteSpace(needle)
+            ? Playlists
+            : new ObservableCollection<PlaylistListItemDto>(Playlists.Where(p =>
+                p.Title.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrWhiteSpace(p.Description) &&
+                 p.Description.Contains(needle, StringComparison.OrdinalIgnoreCase))));
+
+        foreach (var playlist in playlists)
+            SearchResultPlaylists.Add(playlist);
+
+        NotifySearchType();
     }
 
     private async Task LoadLikedAsync()
@@ -507,6 +582,7 @@ public class MainWindowViewModel : BaseVM
         Playlists.Clear();
         foreach (var item in items) Playlists.Add(item);
         if (Playlists.Count > 0 && SelectedPlaylist is null) SelectedPlaylist = Playlists[0];
+        BuildSearchResults();
     }
 
     private async Task LoadPlaylistTracksAsync()
@@ -895,12 +971,22 @@ public class MainWindowViewModel : BaseVM
     private void NotifySections()
     {
         OnPropertyChanged(nameof(IsTracksSection));
+        OnPropertyChanged(nameof(IsSearchSection));
         OnPropertyChanged(nameof(IsPremiumSection));
         OnPropertyChanged(nameof(IsLikedSection));
         OnPropertyChanged(nameof(IsQueueSection));
         OnPropertyChanged(nameof(IsPlaylistsSection));
         OnPropertyChanged(nameof(IsArtistSection));
         OnPropertyChanged(nameof(IsAlbumSection));
+    }
+
+    private void NotifySearchType()
+    {
+        OnPropertyChanged(nameof(IsSearchAllType));
+        OnPropertyChanged(nameof(IsSearchArtistsType));
+        OnPropertyChanged(nameof(IsSearchTracksType));
+        OnPropertyChanged(nameof(IsSearchAlbumsType));
+        OnPropertyChanged(nameof(IsSearchPlaylistsType));
     }
 
     private void SeedRecentTracks()
