@@ -3,57 +3,336 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:MVVM.ViewModels"
+        xmlns:playback="clr-namespace:MVVM.Models.Playback"
         x:DataType="vm:MainWindowViewModel"
         mc:Ignorable="d"
-        d:DesignWidth="1100"
-        d:DesignHeight="720"
+        d:DesignWidth="1380"
+        d:DesignHeight="900"
         x:Class="MVVM.Views.MainWindow"
-        Title="Yarify Main"
-        Width="1100"
-        Height="720"
-        MinWidth="900"
-        MinHeight="620"
+        Title="Yarify"
+        Width="1380"
+        Height="900"
+        MinWidth="1180"
+        MinHeight="760"
         WindowStartupLocation="CenterScreen">
 
-    <Grid RowDefinitions="Auto,*" Margin="18">
-        <Border Grid.Row="0" Background="#FF111111" CornerRadius="12" Padding="18" Margin="0,0,0,14">
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Spacing="2">
-                    <TextBlock FontSize="15" Foreground="{StaticResource TextMutedBrush}" Text="YARIFY"/>
-                    <TextBlock FontSize="30" FontWeight="Bold" Text="Главный экран"/>
-                </StackPanel>
-
-                <Button Classes="secondary"
-                        Grid.Column="1"
-                        Content="Выйти"
-                        Command="{Binding LogoutCommand}"
-                        VerticalAlignment="Center"/>
+    <Grid RowDefinitions="Auto,*,Auto" Margin="10" RowSpacing="8">
+        <Border Grid.Row="0" Classes="panel" Padding="10,8">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                <Button Content="⌂" Width="38" Height="38" Command="{Binding SetSectionTracksCommand}"/>
+                <Border Grid.Column="1" Background="#1C1C1E" CornerRadius="20" Padding="8,0" Height="38">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+                        <TextBlock Text="⌕" VerticalAlignment="Center" Foreground="{StaticResource TextMutedBrush}" FontSize="16"/>
+                        <TextBox Grid.Column="1" Watermark="Что хочешь включить?" Text="{Binding SearchText}" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="|" VerticalAlignment="Center" Foreground="{StaticResource TextMutedBrush}"/>
+                        <Button Grid.Column="3" Content="Обзор" Command="{Binding SetSectionBrowseCommand}"/>
+                        <Button Grid.Column="4" Content="Найти" Command="{Binding SearchTracksCommand}" Classes="accent"/>
+                    </Grid>
+                </Border>
+                <Button Grid.Column="2" Content="Узнать больше о Premium" Command="{Binding SetSectionPremiumCommand}"/>
+                <Button Grid.Column="3" Width="40" Height="40" Padding="0">
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedRight">
+                            <Border Classes="panel-soft" Padding="8" Width="180">
+                                <StackPanel Spacing="6">
+                                    <Button Content="Профиль" HorizontalContentAlignment="Left"/>
+                                    <Button Content="Настройки" HorizontalContentAlignment="Left"/>
+                                    <Button Content="Выйти" Command="{Binding LogoutCommand}" HorizontalContentAlignment="Left"/>
+                                </StackPanel>
+                            </Border>
+                        </Flyout>
+                    </Button.Flyout>
+                    <Grid>
+                        <Border Width="34" Height="34" CornerRadius="17" Background="#3D242E" IsVisible="{Binding HasUserAvatar}"><Image Source="{Binding UserAvatarSource}" Stretch="UniformToFill"/></Border>
+                        <Border Width="34" Height="34" CornerRadius="17" Background="#3D242E" IsVisible="{Binding ShowAvatarPlaceholder}"><TextBlock Text="{Binding UserInitial}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/></Border>
+                    </Grid>
+                </Button>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" ColumnDefinitions="280,*" ColumnSpacing="14">
-            <Border Grid.Column="0" Background="{StaticResource BgCardBrush}" CornerRadius="12" Padding="18">
-                <StackPanel Spacing="10">
-                    <TextBlock FontSize="22" FontWeight="Bold" Text="Профиль"/>
-                    <TextBlock FontSize="16" Text="{Binding DisplayName}"/>
-                    <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="{Binding RoleTitle}"/>
-                    <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="{Binding UserIdText}"/>
-                </StackPanel>
-            </Border>
-
-            <Border Grid.Column="1" Background="#FF181818" CornerRadius="12" Padding="22">
-                <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
-                    <TextBlock Grid.Row="0" FontSize="24" FontWeight="Bold" Text="Ваша сессия активна"/>
-                    <TextBlock Grid.Row="1" Foreground="{StaticResource TextMutedBrush}" Text="Здесь будет основной контент плеера (плейлисты, треки, поиск)."/>
-
-                    <Border Grid.Row="2" Background="#FF101010" CornerRadius="10" Padding="16">
+        <Grid Grid.Row="1" ColumnDefinitions="250,*,300" ColumnSpacing="8">
+            <Border Grid.Column="0" Classes="panel" Padding="8">
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Медиатека" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="+" Width="34" Height="34">
+                            <Button.Flyout>
+                                <Flyout Placement="BottomEdgeAlignedRight">
+                                    <Border Classes="panel-soft" Padding="8" Width="230">
+                                        <StackPanel Spacing="6">
+                                            <Button Content="Создать плейлист" Command="{Binding OpenCreatePlaylistModalCommand}" HorizontalContentAlignment="Left"/>
+                                            <Button Content="Создать папку" IsEnabled="False" HorizontalContentAlignment="Left"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </Grid>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="8">
-                            <TextBlock FontWeight="SemiBold" Text="Статус"/>
-                            <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="{Binding Status}"/>
+                            <Button Content="Любимые треки" Command="{Binding SetSectionLikedCommand}" Classes="nav" HorizontalContentAlignment="Left"/>
+                            <Button Content="Очередь" Command="{Binding SetSectionQueueCommand}" Classes="nav" HorizontalContentAlignment="Left"/>
+                            <Border Classes="panel-soft" Padding="8">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Твои плейлисты" FontWeight="SemiBold"/>
+                                    <ListBox ItemsSource="{Binding Playlists}" SelectedItem="{Binding SelectedPlaylist}" Classes="card-list" MaxHeight="360">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="playback:PlaylistListItemDto">
+                                                <Border Classes="card" Padding="8" DragDrop.AllowDrop="True" DragDrop.DragOver="PlaylistDropTarget_OnDragOver" DragDrop.Drop="PlaylistDropTarget_OnDrop">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Subtitle}" Foreground="{StaticResource TextMutedBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                    <Button Content="Открыть" Command="{Binding SetSectionPlaylistsCommand}"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
-                    </Border>
+                    </ScrollViewer>
+                    <TextBlock Grid.Row="2" Text="{Binding Status}" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
                 </Grid>
             </Border>
+
+            <Border Grid.Column="1" Classes="panel" Padding="0">
+                <Grid>
+                    <Grid IsVisible="{Binding IsTracksSection}" RowDefinitions="Auto,*">
+                        <StackPanel Margin="14,14,14,8" Spacing="8">
+                            <ListBox Classes="chip-list" ItemsSource="{Binding GenreOptions}" SelectedItem="{Binding SelectedGenre}">
+                                <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+                            </ListBox>
+                            <TextBlock Text="{Binding FoundTracksText}" Foreground="{StaticResource TextMutedBrush}"/>
+                        </StackPanel>
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="14,0,14,14" Spacing="16">
+                                <Border IsVisible="{Binding IsOverviewOpen}" Classes="panel-soft" Padding="12">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Все остальное" FontSize="30" FontWeight="Bold"/>
+                                        <ItemsControl ItemsSource="{Binding GenreOptions}">
+                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="170" ItemHeight="95"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Classes="card" Margin="0,0,8,8" Background="#2E2130"><TextBlock Text="{Binding}" FontSize="22" FontWeight="Bold" Margin="12"/></Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                                <StackPanel Spacing="10" IsVisible="{Binding IsHomeFeedVisible}">
+                                    <TextBlock Text="В твоей медиатеке" FontSize="30" FontWeight="Bold"/>
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                        <Border Classes="card" Background="#3B1F5E"><TextBlock Text="Любимые треки" FontSize="20" FontWeight="Bold"/></Border>
+                                        <Border Grid.Column="1" Classes="card" Background="#2B1F2A"><TextBlock Text="Твои плейлисты" FontSize="20" FontWeight="Bold"/></Border>
+                                    </Grid>
+                                </StackPanel>
+                                <StackPanel Spacing="10" IsVisible="{Binding IsHomeFeedVisible}">
+                                    <TextBlock Text="Для тебя" FontSize="30" FontWeight="Bold"/>
+                                    <ItemsControl ItemsSource="{Binding Tracks}">
+                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="185"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="playback:TrackListItemDto">
+                                                <Border Classes="card" Margin="0,0,10,10" PointerPressed="TrackCard_OnPointerPressed">
+                                                    <StackPanel Spacing="8">
+                                                        <Border Height="120" CornerRadius="10" Background="#3C232D" ClipToBounds="True"><Image Source="{Binding CoverSource}" Stretch="UniformToFill"/></Border>
+                                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Artist}" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                                <StackPanel Spacing="10" IsVisible="{Binding IsHomeFeedVisible}">
+                                    <TextBlock Text="Слушаем дальше" FontSize="30" FontWeight="Bold"/>
+                                    <ItemsControl ItemsSource="{Binding QueueItems}">
+                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="185"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="playback:QueueItemDto">
+                                                <Border Classes="card" Margin="0,0,10,10">
+                                                    <StackPanel Spacing="8">
+                                                        <Border Height="120" CornerRadius="10" Background="#3C232D" ClipToBounds="True"><Image Source="{Binding Track.CoverSource}" Stretch="UniformToFill"/></Border>
+                                                        <TextBlock Text="{Binding Track.Title}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Text="{Binding Track.Artist}" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                                <StackPanel Spacing="10" IsVisible="{Binding IsHomeFeedVisible}">
+                                    <TextBlock Text="Недавно прослушано" FontSize="30" FontWeight="Bold"/>
+                                    <ListBox ItemsSource="{Binding RecentTracks}" SelectedItem="{Binding SelectedTrack}" Classes="card-list" MaxHeight="250">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="playback:TrackListItemDto">
+                                                <Border Classes="card" PointerPressed="TrackCard_OnPointerPressed">
+                                                    <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="10">
+                                                        <Border Classes="cover-sm"><Image Source="{Binding CoverSource}" Stretch="UniformToFill"/></Border>
+                                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding Artist}" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding DurationText}" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <Grid IsVisible="{Binding IsPremiumSection}" Margin="14">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Premium" FontSize="34" FontWeight="Bold"/>
+                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                                    <Border Classes="card" Background="#242428" Padding="14">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                                            <Border Background="#F4C8D5" CornerRadius="6" Padding="10,4" HorizontalAlignment="Left">
+                                                <TextBlock Text="0 ₽ за 1 месяц" Foreground="#000000" FontWeight="SemiBold"/>
+                                            </Border>
+                                            <TextBlock Grid.Row="1" Text="Premium" FontSize="24" FontWeight="Bold" Foreground="#F4C8D5"/>
+                                            <TextBlock Grid.Row="2" Text="{Binding FreePlan.Title}" FontSize="46" FontWeight="Bold" TextWrapping="Wrap"/>
+                                            <TextBlock Grid.Row="3" Text="{Binding FreePlan.MonthlyPrice, StringFormat={}{0} ₽ в месяц}" FontWeight="SemiBold"/>
+                                            <TextBlock Grid.Row="4" Text="{Binding FreePlan.Description}" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                            <Button Grid.Row="5" Content="Выбрать" Classes="accent" Background="#F4C8D5" Foreground="#161616"/>
+                                            <TextBlock Grid.Row="6" Text="Действуют условия." Foreground="{StaticResource TextMutedBrush}" FontSize="12"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Column="1" Classes="card" Background="#242428" Padding="14">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                                            <Border Background="#D3C0F5" CornerRadius="6" Padding="10,4" HorizontalAlignment="Left">
+                                                <TextBlock Text="0 ₽ за 1 месяц" Foreground="#000000" FontWeight="SemiBold"/>
+                                            </Border>
+                                            <TextBlock Grid.Row="1" Text="Premium" FontSize="24" FontWeight="Bold" Foreground="#D3C0F5"/>
+                                            <TextBlock Grid.Row="2" Text="{Binding StudentPlan.Title}" FontSize="46" FontWeight="Bold" TextWrapping="Wrap"/>
+                                            <TextBlock Grid.Row="3" Text="{Binding StudentPlan.MonthlyPrice, StringFormat={}{0} ₽ в месяц}" FontWeight="SemiBold"/>
+                                            <TextBlock Grid.Row="4" Text="{Binding StudentPlan.Description}" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                            <Button Grid.Row="5" Content="Выбрать" Classes="accent" Background="#D3C0F5" Foreground="#161616"/>
+                                            <TextBlock Grid.Row="6" Text="Действуют условия для студентов." Foreground="{StaticResource TextMutedBrush}" FontSize="12"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Column="2" Classes="card" Background="#242428" Padding="14">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                                            <Border Background="#F7C45E" CornerRadius="6" Padding="10,4" HorizontalAlignment="Left">
+                                                <TextBlock Text="Лучший тариф" Foreground="#000000" FontWeight="SemiBold"/>
+                                            </Border>
+                                            <TextBlock Grid.Row="1" Text="Premium" FontSize="24" FontWeight="Bold" Foreground="#F7C45E"/>
+                                            <TextBlock Grid.Row="2" Text="{Binding PremiumPlan.Title}" FontSize="46" FontWeight="Bold" TextWrapping="Wrap"/>
+                                            <TextBlock Grid.Row="3" Text="{Binding PremiumPlan.MonthlyPrice, StringFormat={}{0} ₽ в месяц}" FontWeight="SemiBold"/>
+                                            <TextBlock Grid.Row="4" Text="{Binding PremiumPlan.Description}" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                                            <Button Grid.Row="5" Content="Выбрать" Classes="accent" Background="#F7C45E" Foreground="#161616"/>
+                                            <TextBlock Grid.Row="6" Text="Отмена в любой момент." Foreground="{StaticResource TextMutedBrush}" FontSize="12"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <Grid IsVisible="{Binding IsLikedSection}" RowDefinitions="Auto,*,Auto" RowSpacing="8" Margin="14">
+                        <TextBlock FontSize="30" FontWeight="Bold" Text="Любимые треки"/>
+                        <ListBox Grid.Row="1" ItemsSource="{Binding LikedTracks}" SelectedItem="{Binding SelectedLikedTrack}" Classes="card-list">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="playback:TrackListItemDto">
+                                    <Border Classes="card"><Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="10"><Border Classes="cover-sm"><Image Source="{Binding CoverSource}" Stretch="UniformToFill"/></Border><StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center"><TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Artist}" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/></StackPanel><TextBlock Grid.Column="2" Text="{Binding DurationText}" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/></Grid></Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Button Grid.Row="2" Content="Играть" Command="{Binding PlayLikedTrackCommand}" Classes="accent"/>
+                    </Grid>
+
+                    <Grid IsVisible="{Binding IsPlaylistsSection}" RowDefinitions="Auto,Auto,*" RowSpacing="8" Margin="14">
+                        <TextBlock FontSize="30" FontWeight="Bold" Text="{Binding SelectedPlaylist.Title}"/>
+                        <WrapPanel Grid.Row="1"><Button Content="Изменить" Command="{Binding OpenEditPlaylistModalCommand}"/><Button Content="Удалить" Command="{Binding DeletePlaylistCommand}"/></WrapPanel>
+                        <ListBox Grid.Row="2" ItemsSource="{Binding PlaylistTracks}" SelectedItem="{Binding SelectedPlaylistTrack}" Classes="card-list">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="playback:TrackListItemDto">
+                                    <Border Classes="card" PointerPressed="TrackCard_OnPointerPressed"><Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="10"><Border Classes="cover-sm"><Image Source="{Binding CoverSource}" Stretch="UniformToFill"/></Border><StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center"><TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Artist}" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/></StackPanel><TextBlock Grid.Column="2" Text="{Binding DurationText}" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/></Grid></Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+
+                    <Grid IsVisible="{Binding IsQueueSection}" RowDefinitions="Auto,*,Auto" RowSpacing="8" Margin="14">
+                        <TextBlock FontSize="30" FontWeight="Bold" Text="Очередь"/>
+                        <ListBox Grid.Row="1" ItemsSource="{Binding QueueItems}" SelectedItem="{Binding SelectedQueueItem}" Classes="card-list">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="playback:QueueItemDto">
+                                    <Border Classes="card"><Grid ColumnDefinitions="32,56,*,Auto" ColumnSpacing="8"><TextBlock Text="{Binding Position}" VerticalAlignment="Center" Foreground="{StaticResource TextMutedBrush}"/><Border Grid.Column="1" Classes="cover-sm"><Image Source="{Binding Track.CoverSource}" Stretch="UniformToFill"/></Border><StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center"><TextBlock Text="{Binding Track.Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Track.Artist}" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/></StackPanel><TextBlock Grid.Column="3" Text="{Binding Track.DurationText}" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/></Grid></Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <WrapPanel Grid.Row="2"><Button Content="Играть" Command="{Binding PlayQueueTrackCommand}" Classes="accent"/><Button Content="Вверх" Command="{Binding MoveQueueUpCommand}"/><Button Content="Вниз" Command="{Binding MoveQueueDownCommand}"/><Button Content="Удалить" Command="{Binding RemoveFromQueueCommand}"/></WrapPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+            <Border Grid.Column="2" Classes="panel" Padding="10" IsVisible="{Binding IsQueuePanelOpen}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="10">
+                        <TextBlock FontSize="20" FontWeight="Bold" Text="Сейчас играет"/>
+                        <Border Classes="card" Padding="10">
+                            <StackPanel Spacing="8">
+                                <Border Height="230" CornerRadius="12" Background="#3C232D" ClipToBounds="True"><Image Source="{Binding CurrentTrackCoverSource}" Stretch="UniformToFill"/></Border>
+                                <TextBlock Text="{Binding CurrentTrackTitle}" FontSize="28" FontWeight="Bold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding CurrentTrackArtist}" FontSize="20" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card" Padding="10"><StackPanel Spacing="6"><TextBlock Text="Об исполнителе" FontWeight="Bold" FontSize="18"/><TextBlock Text="{Binding CurrentArtistMonthlyListenersText}" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/></StackPanel></Border>
+                        <Border Classes="card" Padding="10">
+                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="6">
+                                <TextBlock Text="Далее в очереди" FontWeight="Bold" FontSize="18"/>
+                                <ListBox Grid.Row="1" ItemsSource="{Binding QueueItems}" SelectedItem="{Binding SelectedQueueItem}" Classes="card-list" MaxHeight="280">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="playback:QueueItemDto">
+                                            <Border Classes="card" Padding="8"><Grid ColumnDefinitions="24,46,*,Auto" ColumnSpacing="8"><TextBlock Text="{Binding Position}" VerticalAlignment="Center" Foreground="{StaticResource TextMutedBrush}"/><Border Grid.Column="1" Width="46" Height="46" CornerRadius="8" Background="#3C232D" ClipToBounds="True"><Image Source="{Binding Track.CoverSource}" Stretch="UniformToFill"/></Border><StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center"><TextBlock Text="{Binding Track.Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Track.Artist}" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/></StackPanel><TextBlock Grid.Column="3" Text="{Binding Track.DurationText}" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/></Grid></Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <WrapPanel Grid.Row="2"><Button Content="Вверх" Command="{Binding MoveQueueUpCommand}"/><Button Content="Вниз" Command="{Binding MoveQueueDownCommand}"/><Button Content="Удалить" Command="{Binding RemoveFromQueueCommand}"/></WrapPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
         </Grid>
+
+        <Border Grid.Row="2" Classes="panel" Padding="10,8">
+            <Grid ColumnDefinitions="3*,4*,2*" ColumnSpacing="10">
+                <Grid ColumnDefinitions="64,*,Auto" ColumnSpacing="10">
+                    <Border Classes="cover-now"><Image Source="{Binding CurrentTrackCoverSource}" Stretch="UniformToFill"/></Border>
+                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center"><TextBlock Text="{Binding CurrentTrackTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding CurrentTrackArtist}" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/></StackPanel>
+                    <Button Grid.Column="2" Content="+" Width="32" Height="32" VerticalAlignment="Center">
+                        <Button.Flyout>
+                            <Flyout Placement="Top">
+                                <Border Classes="panel-soft" Padding="8" Width="230"><StackPanel Spacing="6"><Button Content="Добавить в любимые" Command="{Binding AddCurrentTrackToLikedCommand}" HorizontalContentAlignment="Left"/><Button Content="Добавить в выбранный плейлист" Command="{Binding AddCurrentTrackToPlaylistCommand}" HorizontalContentAlignment="Left"/></StackPanel></Border>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                </Grid>
+                <Grid Grid.Column="1" RowDefinitions="Auto,Auto" RowSpacing="6">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8"><Button Content="⤮" Command="{Binding ToggleShuffleCommand}" Classes="player-mode" Classes.active="{Binding IsShuffleEnabled}" Width="42"/><Button Content="⏮" Command="{Binding PreviousTrackCommand}" Width="42"/><Button Content="⏯" Command="{Binding PlayPauseCommand}" Width="56" Classes="accent"/><Button Content="⏭" Command="{Binding NextTrackCommand}" Width="42"/><Button Content="{Binding RepeatGlyph}" Command="{Binding ToggleRepeatModeCommand}" Classes="player-mode" Classes.active="{Binding IsRepeatEnabled}" Width="42"/></StackPanel>
+                    <Grid Grid.Row="1" RowDefinitions="Auto,Auto" RowSpacing="4"><TextBlock Text="{Binding SeekPreviewText}" IsVisible="{Binding IsSeekPreviewVisible}" HorizontalAlignment="Center" Foreground="{StaticResource TextMutedBrush}"/><Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center"><TextBlock VerticalAlignment="Center" Text="{Binding PositionText}"/><Slider x:Name="PlayerProgressSlider" Grid.Column="1" Minimum="0" Maximum="{Binding DurationSeconds}" Value="{Binding PositionSeconds, Mode=TwoWay}" Classes="progress" Height="24" PointerMoved="PlayerProgressSlider_OnPointerMoved" PointerExited="PlayerProgressSlider_OnPointerExited"/><TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding DurationText}"/></Grid></Grid>
+                </Grid>
+                <Grid Grid.Column="2" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalAlignment="Center"><Button Content="🔊" Command="{Binding MuteCommand}" Width="42"/><Slider Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding VolumePercent, Mode=TwoWay}" Height="24"/><TextBlock Grid.Column="2" Text="{Binding VolumeLabel}" VerticalAlignment="Center"/></Grid>
+            </Grid>
+        </Border>
+
+        <Border Grid.RowSpan="3" IsVisible="{Binding IsPlaylistModalOpen}" Background="#A6000000">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="500">
+                <Border Classes="panel" Padding="18">
+                    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                        <TextBlock Text="{Binding PlaylistModalHeader}" FontSize="22" FontWeight="Bold"/>
+                        <TextBox Grid.Row="1" Watermark="Название плейлиста" Text="{Binding NewPlaylistTitle}"/>
+                        <TextBox Grid.Row="2" Watermark="Описание" Text="{Binding NewPlaylistDescription}"/>
+                        <CheckBox Grid.Row="3" Content="Публичный" IsChecked="{Binding NewPlaylistIsPublic}"/>
+                        <WrapPanel Grid.Row="4"><Button Content="{Binding PlaylistSubmitText}" Command="{Binding SavePlaylistModalCommand}" Classes="accent"/><Button Content="Закрыть" Command="{Binding ClosePlaylistModalCommand}"/></WrapPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

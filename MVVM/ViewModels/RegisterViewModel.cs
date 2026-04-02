@@ -1,35 +1,21 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using MVVM.Models.Auth;
+﻿using MVVM.Models.Auth;
 using MVVM.Services;
+using MVVM.Tools;
 
 namespace MVVM.ViewModels;
 
-public partial class RegisterViewModel : ObservableObject
+public class RegisterViewModel : BaseVM
 {
     private readonly AuthSessionService _authSessionService;
     private readonly Func<AuthResponseDto, Task> _onAuthSuccess;
     private readonly Action _backToLogin;
 
-    [ObservableProperty]
     private string _login = string.Empty;
-
-    [ObservableProperty]
     private string _email = string.Empty;
-
-    [ObservableProperty]
     private string _displayName = string.Empty;
-
-    [ObservableProperty]
     private string _password = string.Empty;
-
-    [ObservableProperty]
     private string _confirmPassword = string.Empty;
-
-    [ObservableProperty]
     private string _status = string.Empty;
-
-    [ObservableProperty]
     private bool _isBusy;
 
     public RegisterViewModel(
@@ -40,23 +26,63 @@ public partial class RegisterViewModel : ObservableObject
         _authSessionService = authSessionService;
         _onAuthSuccess = onAuthSuccess;
         _backToLogin = backToLogin;
+
+        BackToLoginCommand = new RelayCommand(BackToLogin, () => !IsBusy);
+        RegisterCommand = new AsyncRelayCommand(RegisterAsync, () => !IsBusy);
     }
 
-    [RelayCommand]
+    public string Login
+    {
+        get => _login;
+        set => SetProperty(ref _login, value);
+    }
+
+    public string Email
+    {
+        get => _email;
+        set => SetProperty(ref _email, value);
+    }
+
+    public string DisplayName
+    {
+        get => _displayName;
+        set => SetProperty(ref _displayName, value);
+    }
+
+    public string Password
+    {
+        get => _password;
+        set => SetProperty(ref _password, value);
+    }
+
+    public string ConfirmPassword
+    {
+        get => _confirmPassword;
+        set => SetProperty(ref _confirmPassword, value);
+    }
+
+    public string Status
+    {
+        get => _status;
+        set => SetProperty(ref _status, value);
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set => SetProperty(ref _isBusy, value, RaiseCommandCanExecuteChanged);
+    }
+
+    public RelayCommand BackToLoginCommand { get; }
+    public AsyncRelayCommand RegisterCommand { get; }
+
     private void BackToLogin()
     {
-        if (IsBusy)
-            return;
-
         _backToLogin();
     }
 
-    [RelayCommand]
     private async Task RegisterAsync()
     {
-        if (IsBusy)
-            return;
-
         IsBusy = true;
         Status = "Регистрируем...";
 
@@ -81,5 +107,11 @@ public partial class RegisterViewModel : ObservableObject
         ConfirmPassword = string.Empty;
         await _onAuthSuccess(data);
         IsBusy = false;
+    }
+
+    private void RaiseCommandCanExecuteChanged()
+    {
+        BackToLoginCommand.RaiseCanExecuteChanged();
+        RegisterCommand.RaiseCanExecuteChanged();
     }
 }

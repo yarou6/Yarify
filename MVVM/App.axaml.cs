@@ -17,6 +17,9 @@ public partial class App : Application
 {
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     private AuthSessionService? _authSessionService;
+    private AuthState? _authState;
+    private IAudioPlayerService? _audioPlayerService;
+    private PlayerSettingsStore? _playerSettingsStore;
     private Window? _currentWindow;
 
     public override void Initialize()
@@ -34,6 +37,9 @@ public partial class App : Application
             var authApiClient = new AuthApiClient("http://localhost:5048");
             var sessionStore = new SessionStore();
             _authSessionService = new AuthSessionService(authApiClient, sessionStore);
+            _authState = new AuthState();
+            _audioPlayerService = new NAudioPlayerService();
+            _playerSettingsStore = new PlayerSettingsStore();
 
             StartAsync();
         }
@@ -72,6 +78,10 @@ public partial class App : Application
             return null;
         }
 
+        authSessionService.ApiClient.SetAccessToken(data.Token);
+        if (_authState is not null)
+            _authState.Current = data;
+
         await authSessionService.SessionStore.SaveAsync(MapSession(data));
         return data;
     }
@@ -81,6 +91,10 @@ public partial class App : Application
         if (_authSessionService is null)
             return;
 
+        _authSessionService.ApiClient.SetAccessToken(authData.Token);
+        if (_authState is not null)
+            _authState.Current = authData;
+
         await _authSessionService.SessionStore.SaveAsync(MapSession(authData));
         await Dispatcher.UIThread.InvokeAsync(() => OpenMainWindow(authData));
     }
@@ -89,6 +103,10 @@ public partial class App : Application
     {
         if (_authSessionService is null)
             return;
+
+        _authSessionService.ApiClient.SetAccessToken(null);
+        if (_authState is not null)
+            _authState.Current = null;
 
         var vm = new LoginViewModel(_authSessionService, HandleAuthSuccessAsync, OpenRegisterWindow);
         var window = new LoginWindow
@@ -115,10 +133,10 @@ public partial class App : Application
 
     private void OpenMainWindow(AuthResponseDto authData)
     {
-        if (_authSessionService is null)
+        if (_authSessionService is null || _audioPlayerService is null || _playerSettingsStore is null)
             return;
 
-        var vm = new MainWindowViewModel(_authSessionService, authData, OnLogoutAsync);
+        var vm = new MainWindowViewModel(_authSessionService, authData, _audioPlayerService, _playerSettingsStore, OnLogoutAsync);
         var window = new MainWindow
         {
             DataContext = vm

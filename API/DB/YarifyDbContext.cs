@@ -48,6 +48,8 @@ public partial class YarifyDbContext : DbContext
 
     public virtual DbSet<Userplan> Userplans { get; set; }
 
+    public virtual DbSet<Userplaybacksetting> Userplaybacksettings { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseMySql("server=localhost;user=root;database=YarifyDB", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
@@ -539,9 +541,47 @@ public partial class YarifyDbContext : DbContext
                 .HasConstraintName("fk_userplans_users");
         });
 
+        modelBuilder.Entity<Userplaybacksetting>(entity =>
+        {
+            entity.HasKey(e => e.UserId).HasName("PRIMARY");
+
+            entity.ToTable("userplaybacksettings");
+
+            entity.Property(e => e.UserId)
+                .ValueGeneratedNever()
+                .HasColumnName("user_id")
+                .HasColumnType("int(11)");
+
+            entity.Property(e => e.ShuffleEnabled)
+                .HasColumnName("shuffle_enabled")
+                .IsRequired()
+                .HasDefaultValueSql("'0'");
+
+            entity.Property(e => e.RepeatMode)
+                .HasColumnName("repeat_mode")
+                .HasColumnType("enum('Off','All','One')")
+                .HasDefaultValueSql("'Off'");
+
+            entity.Property(e => e.AutoplayEnabled)
+                .HasColumnName("autoplay_enabled")
+                .IsRequired()
+                .HasDefaultValueSql("'1'");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("current_timestamp()");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("fk_userplaybacksettings_users");
+        });
         OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+
+
+
 
