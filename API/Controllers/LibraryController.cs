@@ -375,7 +375,7 @@ public class LibraryController : ControllerBase
         if (file is null || file.Length == 0)
             return BadRequest(new ApiErrorResponse { Message = "Файл не передан." });
 
-        var uploaded = await SaveFormFileAsync(file, "audio", "song", songId);
+        var uploaded = await SaveFormFileAsync(file, "music", "song", songId);
 
         song.LocalPath = uploaded.RelativePath;
         song.SourceType = "Local";
@@ -402,7 +402,7 @@ public class LibraryController : ControllerBase
         if (file is null || file.Length == 0)
             return BadRequest(new ApiErrorResponse { Message = "Файл не передан." });
 
-        var uploaded = await SaveFormFileAsync(file, "covers", "song", songId);
+        var uploaded = await SaveFormFileAsync(file, "uploads/cover", "song", songId);
 
         song.CoverPath = uploaded.RelativePath;
         song.UpdatedAt = DateTime.UtcNow;
@@ -424,7 +424,7 @@ public class LibraryController : ControllerBase
         if (file is null || file.Length == 0)
             return BadRequest(new ApiErrorResponse { Message = "Файл не передан." });
 
-        var uploaded = await SaveFormFileAsync(file, "covers", "album", albumId);
+        var uploaded = await SaveFormFileAsync(file, "uploads/cover", "album", albumId);
 
         album.CoverPath = uploaded.RelativePath;
         await _db.SaveChangesAsync();
@@ -478,11 +478,11 @@ public class LibraryController : ControllerBase
         };
     }
 
-    private static async Task<MediaUploadResponseDto> SaveFormFileAsync(IFormFile file, string bucket, string entityType, int entityId)
+    private static async Task<MediaUploadResponseDto> SaveFormFileAsync(IFormFile file, string folder, string entityType, int entityId)
     {
         var extension = Path.GetExtension(file.FileName);
         var fileName = $"{entityType}_{entityId}_{Guid.NewGuid():N}{extension}";
-        var relativePath = Path.Combine("uploads", bucket, fileName).Replace('\\', '/');
+        var relativePath = Path.Combine(folder, fileName).Replace('\\', '/');
         var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
 
         Directory.CreateDirectory(Path.GetDirectoryName(absolutePath)!);

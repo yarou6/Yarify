@@ -55,6 +55,41 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="CaretBrush" Value="{StaticResource AccentHoverBrush}"/>
+            <Setter Property="SelectionBrush" Value="#668C1936"/>
+        </Style>
+
+        <Style Selector="TextBox:focus, TextBox:focus-within, TextBox:focus-visible">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="ComboBox:focus, ComboBox:focus-within, ComboBox:focus-visible">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="#2A1820"/>
+            <Setter Property="BorderBrush" Value="#703047"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style Selector="ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#1F1318"/>
+            <Setter Property="BorderBrush" Value="#562638"/>
+        </Style>
+
+        <Style Selector="ComboBoxItem:selected">
+            <Setter Property="Background" Value="#2A1820"/>
+            <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}"/>
+        </Style>
+
+        <Style Selector="ComboBoxItem:pointerover">
+            <Setter Property="Background" Value="#1F1318"/>
+            <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}"/>
         </Style>
 
         <Style Selector="Button">
@@ -64,6 +99,7 @@
             <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
         </Style>
 
         <Style Selector="Button:pointerover">
@@ -90,6 +126,11 @@
         <Style Selector="Button.accent:pointerover">
             <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}"/>
+        </Style>
+
+        <Style Selector="Button.accent:pressed">
+            <Setter Property="Background" Value="#70152D"/>
+            <Setter Property="BorderBrush" Value="#70152D"/>
         </Style>
 
         <Style Selector="Button.link">
@@ -141,21 +182,191 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
 
-        <Style Selector="Border.card">
-            <Setter Property="Background" Value="#170F12"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderSoftBrush}"/>
+        <Style Selector="ListBox.card-list > ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style Selector="ListBox.card-list > ListBoxItem:selected">
+            <Setter Property="Background" Value="#2A1820"/>
+            <Setter Property="BorderBrush" Value="#703047"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style Selector="ListBox.card-list > ListBoxItem">
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+
+        <Style Selector="ListBox.card-list > ListBoxItem:selected:focus, ListBox.card-list > ListBoxItem:selected:pointerover, ListBox.card-list > ListBoxItem:selected:focus-within, ListBox.card-list > ListBoxItem:selected:current, ListBox.card-list > ListBoxItem:selected:focus-visible">
+            <Setter Property="Background" Value="#2A1820"/>
+            <Setter Property="BorderBrush" Value="#703047"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style Selector="ListBox.card-list > ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#1F1318"/>
+            <Setter Property="BorderBrush" Value="#562638"/>
+        </Style>
+
+        <Style Selector="ListBox.card-list > ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2A1820"/>
+            <Setter Property="BorderBrush" Value="#703047"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style Selector="ListBox.album-list > ListBoxItem:selected">
+            <Setter Property="Background" Value="#2A1820"/>
+            <Setter Property="BorderBrush" Value="#703047"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style Selector="ListBox.album-list > ListBoxItem">
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+
+        <Style Selector="ListBox.album-list > ListBoxItem:selected:focus, ListBox.album-list > ListBoxItem:selected:pointerover, ListBox.album-list > ListBoxItem:selected:focus-within, ListBox.album-list > ListBoxItem:selected:current, ListBox.album-list > ListBoxItem:selected:focus-visible">
+            <Setter Property="Background" Value="#2A1820"/>
+            <Setter Property="BorderBrush" Value="#703047"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style Selector="ListBox.album-list > ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#1F1318"/>
+            <Setter Property="BorderBrush" Value="#562638"/>
+        </Style>
+
+        <Style Selector="ListBox.album-list > ListBoxItem:selected Border.card">
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#2A1820" Offset="0"/>
+                    <GradientStop Color="#1A1115" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#703047"/>
+        </Style>
+
+        <Style Selector="ListBox.album-list > ListBoxItem:selected:pointerover Border.card">
+            <Setter Property="BorderBrush" Value="#8C3A57"/>
+        </Style>
+
+        <Style Selector="ListBox.album-list > ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2A1820"/>
+            <Setter Property="BorderBrush" Value="#703047"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style Selector="Button.media-toggle">
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#3D1B28" Offset="0"/>
+                    <GradientStop Color="#221218" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#703047"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}"/>
+        </Style>
+
+        <Style Selector="Button.media-toggle:pointerover">
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#552538" Offset="0"/>
+                    <GradientStop Color="#2D1720" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#8C3A57"/>
+        </Style>
+
+        <Style Selector="Button.media-toggle:pressed">
+            <Setter Property="Background" Value="#8C1936"/>
+            <Setter Property="BorderBrush" Value="#8C1936"/>
+        </Style>
+
+        <Style Selector="Border.card">
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#1F1419" Offset="0"/>
+                    <GradientStop Color="#130E12" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#4E2B37"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="11"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="BoxShadow" Value="0 10 24 0 #30000000"/>
+        </Style>
+
+        <Style Selector="Border.card:pointerover">
+            <Setter Property="BorderBrush" Value="#7C344A"/>
+            <Setter Property="BoxShadow" Value="0 14 28 0 #48000000"/>
         </Style>
 
         <Style Selector="Border.hero">
-            <Setter Property="Background" Value="#26141A"/>
-            <Setter Property="BorderBrush" Value="{StaticResource BorderSoftBrush}"/>
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#3A1D28" Offset="0"/>
+                    <GradientStop Color="#211018" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#5B2C3B"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="CornerRadius" Value="18"/>
             <Setter Property="Padding" Value="14"/>
+            <Setter Property="BoxShadow" Value="0 16 36 0 #44000000"/>
+        </Style>
+
+        <Style Selector="Border.album-hero">
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#4C1F33" Offset="0"/>
+                    <GradientStop Color="#2A1420" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#6E3250"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="BoxShadow" Value="0 20 44 0 #52000000"/>
+        </Style>
+
+        <Style Selector="Border.artist-hero">
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#5A2736" Offset="0"/>
+                    <GradientStop Color="#2A151E" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#7A3950"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="BoxShadow" Value="0 20 44 0 #52000000"/>
+        </Style>
+
+        <Style Selector="Border.artist-avatar-xl">
+            <Setter Property="Width" Value="184"/>
+            <Setter Property="Height" Value="184"/>
+            <Setter Property="CornerRadius" Value="92"/>
+            <Setter Property="Background" Value="#3C232D"/>
+            <Setter Property="BorderBrush" Value="#7A3950"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="ClipToBounds" Value="True"/>
+            <Setter Property="BoxShadow" Value="0 14 30 0 #48000000"/>
+        </Style>
+
+        <Style Selector="Border.album-cover-xl">
+            <Setter Property="Width" Value="212"/>
+            <Setter Property="Height" Value="212"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Background" Value="#3C232D"/>
+            <Setter Property="ClipToBounds" Value="True"/>
+            <Setter Property="BorderBrush" Value="#6A2D43"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BoxShadow" Value="0 18 32 0 #56000000"/>
         </Style>
 
         <Style Selector="Border.cover-sm">
@@ -189,9 +400,60 @@
         </Style>
 
         <Style Selector="Button.player-mode.active">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Background" Value="#4A1E2C"/>
+            <Setter Property="BorderBrush" Value="#6B2E44"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style Selector="Button.player-mode.active:pointerover">
+            <Setter Property="Background" Value="#5A2435"/>
+            <Setter Property="BorderBrush" Value="#7C3550"/>
+        </Style>
+
+        <Style Selector="Button.player-mode.active:pressed">
+            <Setter Property="Background" Value="#3E1825"/>
+            <Setter Property="BorderBrush" Value="#5B273A"/>
+        </Style>
+
+        <Style Selector="Button.transport-icon">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource TextStrongBrush}"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+
+        <Style Selector="Button.transport-icon:pointerover">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <Style Selector="Button.transport-icon:pressed">
+            <Setter Property="Foreground" Value="#E7CDD6"/>
+        </Style>
+
+        <Style Selector="Button.transport-main">
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#4A1F2E" Offset="0"/>
+                    <GradientStop Color="#2A141C" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#7A3950"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="999"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+
+        <Style Selector="Button.transport-main:pointerover">
+            <Setter Property="Background" Value="#552538"/>
+            <Setter Property="BorderBrush" Value="#8F435E"/>
+        </Style>
+
+        <Style Selector="Button.transport-main:pressed">
+            <Setter Property="Background" Value="#3D1B28"/>
+            <Setter Property="BorderBrush" Value="#A04B69"/>
         </Style>
 
         <Style Selector="Slider.progress">

@@ -37,7 +37,8 @@ public class PlayerController : ControllerBase
             var q = query.Trim();
             tracksQuery = tracksQuery.Where(s =>
                 EF.Functions.Like(s.Title, $"%{q}%") ||
-                EF.Functions.Like(s.ArtistUser.DisplayName, $"%{q}%"));
+                EF.Functions.Like(s.ArtistUser.DisplayName, $"%{q}%") ||
+                (s.ArtistUser.ArtistName != null && EF.Functions.Like(s.ArtistUser.ArtistName, $"%{q}%")));
         }
 
         if (!string.IsNullOrWhiteSpace(genre))
@@ -121,7 +122,7 @@ public class PlayerController : ControllerBase
             {
                 Id = a.Id,
                 Title = a.Title,
-                CoverPath = a.CoverPath,
+                CoverPath = a.CoverPath ?? a.Songs.Select(s => s.CoverPath).FirstOrDefault(),
                 ReleaseDate = a.ReleaseDate,
                 TracksCount = a.Songs.Count
             })
@@ -184,13 +185,14 @@ public class PlayerController : ControllerBase
                 {
                     Id = e.Song.Id,
                     Title = e.Song.Title,
-                    Artist = e.Song.ArtistUser.DisplayName,
+                    Artist = e.Song.ArtistUser.ArtistName != null && e.Song.ArtistUser.ArtistName != "" ? e.Song.ArtistUser.ArtistName : e.Song.ArtistUser.DisplayName,
                     DurationSec = e.Song.DurationSec,
                     StreamUrl = e.Song.StreamUrl,
                     LocalPath = e.Song.LocalPath,
-                    CoverPath = e.Song.CoverPath,
+                    CoverPath = e.Song.CoverPath ?? (e.Song.Album != null ? e.Song.Album.CoverPath : null),
                     ArtistUserId = e.Song.ArtistUserId,
-                    AlbumId = e.Song.AlbumId
+                    AlbumId = e.Song.AlbumId,
+                    AlbumTitle = e.Song.Album != null ? e.Song.Album.Title : null
                 }
             })
             .ToListAsync();
@@ -336,13 +338,14 @@ public class PlayerController : ControllerBase
                 {
                     Id = ps.Song.Id,
                     Title = ps.Song.Title,
-                    Artist = ps.Song.ArtistUser.DisplayName,
+                    Artist = ps.Song.ArtistUser.ArtistName != null && ps.Song.ArtistUser.ArtistName != "" ? ps.Song.ArtistUser.ArtistName : ps.Song.ArtistUser.DisplayName,
                     DurationSec = ps.Song.DurationSec,
                     StreamUrl = ps.Song.StreamUrl,
                     LocalPath = ps.Song.LocalPath,
                     CoverPath = ps.Song.CoverPath,
                     ArtistUserId = ps.Song.ArtistUserId,
-                    AlbumId = ps.Song.AlbumId
+                    AlbumId = ps.Song.AlbumId,
+                    AlbumTitle = ps.Song.Album != null ? ps.Song.Album.Title : null
                 }
             })
             .ToListAsync();
@@ -422,7 +425,7 @@ public class PlayerController : ControllerBase
             {
                 Id = a.Id,
                 Title = a.Title,
-                CoverPath = a.CoverPath,
+                CoverPath = a.CoverPath ?? a.Songs.Select(s => s.CoverPath).FirstOrDefault(),
                 ReleaseDate = a.ReleaseDate,
                 TracksCount = a.Songs.Count
             })
@@ -457,7 +460,10 @@ public class PlayerController : ControllerBase
             .AsNoTracking()
             .Where(s => s.IsActive == null || s.IsActive == true)
             .Include(s => s.ArtistUser)
-            .Where(s => EF.Functions.Like(s.Title, $"%{q}%") || EF.Functions.Like(s.ArtistUser.DisplayName, $"%{q}%"))
+            .Where(s =>
+                EF.Functions.Like(s.Title, $"%{q}%") ||
+                EF.Functions.Like(s.ArtistUser.DisplayName, $"%{q}%") ||
+                (s.ArtistUser.ArtistName != null && EF.Functions.Like(s.ArtistUser.ArtistName, $"%{q}%")))
             .OrderByDescending(s => s.PlayCount)
             .Take(normalizedTake)
             .Select(ToTrackDtoExpr())
@@ -472,7 +478,7 @@ public class PlayerController : ControllerBase
             {
                 Id = a.Id,
                 Title = a.Title,
-                CoverPath = a.CoverPath,
+                CoverPath = a.CoverPath ?? a.Songs.Select(s => s.CoverPath).FirstOrDefault(),
                 ReleaseDate = a.ReleaseDate,
                 TracksCount = a.Songs.Count
             })
@@ -688,11 +694,11 @@ public class PlayerController : ControllerBase
             {
                 Id = l.Song.Id,
                 Title = l.Song.Title,
-                Artist = l.Song.ArtistUser.DisplayName,
+                Artist = l.Song.ArtistUser.ArtistName != null && l.Song.ArtistUser.ArtistName != "" ? l.Song.ArtistUser.ArtistName : l.Song.ArtistUser.DisplayName,
                 DurationSec = l.Song.DurationSec,
                 StreamUrl = l.Song.StreamUrl,
                 LocalPath = l.Song.LocalPath,
-                CoverPath = l.Song.CoverPath,
+                CoverPath = l.Song.CoverPath ?? (l.Song.Album != null ? l.Song.Album.CoverPath : null),
                 ArtistUserId = l.Song.ArtistUserId,
                 AlbumId = l.Song.AlbumId
             })
@@ -758,11 +764,11 @@ public class PlayerController : ControllerBase
                 {
                     Id = q.Song.Id,
                     Title = q.Song.Title,
-                    Artist = q.Song.ArtistUser.DisplayName,
+                    Artist = q.Song.ArtistUser.ArtistName != null && q.Song.ArtistUser.ArtistName != "" ? q.Song.ArtistUser.ArtistName : q.Song.ArtistUser.DisplayName,
                     DurationSec = q.Song.DurationSec,
                     StreamUrl = q.Song.StreamUrl,
                     LocalPath = q.Song.LocalPath,
-                    CoverPath = q.Song.CoverPath
+                    CoverPath = q.Song.CoverPath ?? (q.Song.Album != null ? q.Song.Album.CoverPath : null)
                 }
             })
             .ToListAsync();
@@ -1003,11 +1009,11 @@ public class PlayerController : ControllerBase
                 {
                     Id = ps.Song.Id,
                     Title = ps.Song.Title,
-                    Artist = ps.Song.ArtistUser.DisplayName,
+                    Artist = ps.Song.ArtistUser.ArtistName != null && ps.Song.ArtistUser.ArtistName != "" ? ps.Song.ArtistUser.ArtistName : ps.Song.ArtistUser.DisplayName,
                     DurationSec = ps.Song.DurationSec,
                     StreamUrl = ps.Song.StreamUrl,
                     LocalPath = ps.Song.LocalPath,
-                    CoverPath = ps.Song.CoverPath,
+                    CoverPath = ps.Song.CoverPath ?? (ps.Song.Album != null ? ps.Song.Album.CoverPath : null),
                     ArtistUserId = ps.Song.ArtistUserId,
                     AlbumId = ps.Song.AlbumId
                 }
@@ -1076,11 +1082,11 @@ public class PlayerController : ControllerBase
             {
                 Id = ps.Song.Id,
                 Title = ps.Song.Title,
-                Artist = ps.Song.ArtistUser.DisplayName,
+                Artist = ps.Song.ArtistUser.ArtistName != null && ps.Song.ArtistUser.ArtistName != "" ? ps.Song.ArtistUser.ArtistName : ps.Song.ArtistUser.DisplayName,
                 DurationSec = ps.Song.DurationSec,
                 StreamUrl = ps.Song.StreamUrl,
                 LocalPath = ps.Song.LocalPath,
-                CoverPath = ps.Song.CoverPath,
+                CoverPath = ps.Song.CoverPath ?? (ps.Song.Album != null ? ps.Song.Album.CoverPath : null),
                 ArtistUserId = ps.Song.ArtistUserId,
                 AlbumId = ps.Song.AlbumId
             })
@@ -1227,7 +1233,7 @@ public class PlayerController : ControllerBase
             {
                 Id = a.Id,
                 Title = a.Title,
-                CoverPath = a.CoverPath,
+                CoverPath = a.CoverPath ?? a.Songs.Select(s => s.CoverPath).FirstOrDefault(),
                 ReleaseDate = a.ReleaseDate,
                 TracksCount = a.Songs.Count
             })
@@ -1271,8 +1277,8 @@ public class PlayerController : ControllerBase
         {
             AlbumId = album.Id,
             Title = album.Title,
-            ArtistName = album.ArtistUser.DisplayName,
-            CoverPath = album.CoverPath,
+            ArtistName = string.IsNullOrWhiteSpace(album.ArtistUser.ArtistName) ? album.ArtistUser.DisplayName : album.ArtistUser.ArtistName,
+            CoverPath = album.CoverPath ?? album.Songs.Select(s => s.CoverPath).FirstOrDefault(),
             ReleaseDate = album.ReleaseDate,
             Tracks = tracks
         });
@@ -1361,13 +1367,14 @@ public class PlayerController : ControllerBase
                         {
                             Id = q.Song.Id,
                             Title = q.Song.Title,
-                            Artist = q.Song.ArtistUser.DisplayName,
+                            Artist = q.Song.ArtistUser.ArtistName != null && q.Song.ArtistUser.ArtistName != "" ? q.Song.ArtistUser.ArtistName : q.Song.ArtistUser.DisplayName,
                             DurationSec = q.Song.DurationSec,
                             StreamUrl = q.Song.StreamUrl,
                             LocalPath = q.Song.LocalPath,
-                            CoverPath = q.Song.CoverPath,
+                            CoverPath = q.Song.CoverPath ?? (q.Song.Album != null ? q.Song.Album.CoverPath : null),
                             ArtistUserId = q.Song.ArtistUserId,
-                            AlbumId = q.Song.AlbumId
+                            AlbumId = q.Song.AlbumId,
+                            AlbumTitle = q.Song.Album != null ? q.Song.Album.Title : null
                         }
                     })
                     .FirstOrDefaultAsync();
@@ -1388,13 +1395,14 @@ public class PlayerController : ControllerBase
                             {
                                 Id = q.Song.Id,
                                 Title = q.Song.Title,
-                                Artist = q.Song.ArtistUser.DisplayName,
+                                Artist = q.Song.ArtistUser.ArtistName != null && q.Song.ArtistUser.ArtistName != "" ? q.Song.ArtistUser.ArtistName : q.Song.ArtistUser.DisplayName,
                                 DurationSec = q.Song.DurationSec,
                                 StreamUrl = q.Song.StreamUrl,
                                 LocalPath = q.Song.LocalPath,
-                                CoverPath = q.Song.CoverPath,
+                                CoverPath = q.Song.CoverPath ?? (q.Song.Album != null ? q.Song.Album.CoverPath : null),
                                 ArtistUserId = q.Song.ArtistUserId,
-                                AlbumId = q.Song.AlbumId
+                                AlbumId = q.Song.AlbumId,
+                                AlbumTitle = q.Song.Album != null ? q.Song.Album.Title : null
                             }
                         })
                         .FirstOrDefaultAsync();
@@ -1610,13 +1618,15 @@ public class PlayerController : ControllerBase
         {
             Id = s.Id,
             Title = s.Title,
-            Artist = s.ArtistUser.DisplayName,
+            Artist = s.ArtistUser.ArtistName != null && s.ArtistUser.ArtistName != "" ? s.ArtistUser.ArtistName : s.ArtistUser.DisplayName,
             DurationSec = s.DurationSec,
             StreamUrl = s.StreamUrl,
             LocalPath = s.LocalPath,
-            CoverPath = s.CoverPath,
+            CoverPath = s.CoverPath ?? (s.Album != null ? s.Album.CoverPath : null),
+            PlayCount = s.PlayCount > int.MaxValue ? int.MaxValue : (int)s.PlayCount,
             ArtistUserId = s.ArtistUserId,
-            AlbumId = s.AlbumId
+            AlbumId = s.AlbumId,
+            AlbumTitle = s.Album != null ? s.Album.Title : null
         };
     }
     private async Task SwapQueuePositionsAsync(Playbackqueue first, Playbackqueue second)

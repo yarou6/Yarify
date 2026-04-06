@@ -90,10 +90,17 @@ public class ListeningEventsController : ControllerBase
             return NotFound(new ApiErrorResponse { Message = "Событие прослушивания не найдено." });
 
         entity.PlayedMs = Math.Max(entity.PlayedMs, request.PlayedMs);
-        entity.Completed = request.Completed;
+        var songDurationMs = await _db.Songs
+            .AsNoTracking()
+            .Where(s => s.Id == entity.SongId)
+            .Select(s => s.DurationSec * 1000)
+            .FirstOrDefaultAsync();
+        var isFullyPlayed = songDurationMs > 0 && entity.PlayedMs >= songDurationMs;
+
+        entity.Completed = request.Completed || isFullyPlayed;
         entity.EndedAt = request.EndedAt ?? DateTime.UtcNow;
 
-        var shouldCountPlay = entity.Completed || entity.PlayedMs >= 30_000;
+        var shouldCountPlay = isFullyPlayed;
         if (shouldCountPlay)
             await CountPlayAsync(entity, userId);
 
@@ -110,7 +117,7 @@ public class ListeningEventsController : ControllerBase
 
         var events = await _db.Listeningevents
             .AsNoTracking()
-            .Where(e => e.EndedAt.HasValue && e.EndedAt >= fromUtc && (e.Completed || e.PlayedMs >= 30_000))
+            .Where(e => e.EndedAt.HasValue && e.EndedAt >= fromUtc && e.PlayedMs >= (e.Song.DurationSec * 1000))
             .ToListAsync();
 
         var grouped = events
@@ -180,7 +187,7 @@ public class ListeningEventsController : ControllerBase
                 e.Id != entity.Id &&
                 e.UserId == userId &&
                 e.SongId == entity.SongId &&
-                (e.Completed || e.PlayedMs >= 30_000) &&
+                e.PlayedMs >= (e.Song.DurationSec * 1000) &&
                 (
                     (e.EndedAt.HasValue && e.EndedAt.Value >= dayStart && e.EndedAt.Value < dayEnd) ||
                     (!e.EndedAt.HasValue && e.StartedAt >= dayStart && e.StartedAt < dayEnd)

@@ -61,6 +61,19 @@ public class ProfileController : ControllerBase
             return NotFound(new ApiErrorResponse { Message = "Пользователь не найден." });
 
         user.DisplayName = request.DisplayName.Trim();
+        if (!string.IsNullOrWhiteSpace(request.Email))
+        {
+            var nextEmail = request.Email.Trim();
+            var usedByOther = await _db.Users.AnyAsync(u =>
+                u.Id != userId &&
+                u.Email.ToLower() == nextEmail.ToLower());
+
+            if (usedByOther)
+                return BadRequest(new ApiErrorResponse { Message = "Эта почта уже занята." });
+
+            user.Email = nextEmail;
+        }
+
         user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
 
         if (user.Role.Title is "Artist" or "Admin")

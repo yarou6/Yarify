@@ -97,7 +97,6 @@ builder.Services
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured"))),
-            // Чтобы работал [Authorize(Roles="...")]
             RoleClaimType = ClaimTypes.Role
         };
     });

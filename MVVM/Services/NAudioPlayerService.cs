@@ -8,6 +8,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
     private IWavePlayer? _output;
     private WaveStream? _reader;
     private readonly System.Timers.Timer _positionTimer;
+    private IWavePlayer? _stopRequestedOutput;
 
     public NAudioPlayerService()
     {
@@ -79,6 +80,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
         if (_output is null)
             return;
 
+        _stopRequestedOutput = _output;
         _output.Stop();
         _positionTimer.Stop();
         if (_reader is not null)
@@ -112,10 +114,22 @@ public sealed class NAudioPlayerService : IAudioPlayerService
 
     private void OnPlaybackStopped(object? sender, StoppedEventArgs e)
     {
+        // Ignore late callback from an old output instance.
+        if (sender is not IWavePlayer output || !ReferenceEquals(output, _output))
+            return;
+
         _positionTimer.Stop();
         PlaybackStateChanged?.Invoke(this, EventArgs.Empty);
 
-        if (_reader is not null && _reader.Position >= _reader.Length)
+        var wasStopRequested = ReferenceEquals(output, _stopRequestedOutput);
+        if (wasStopRequested)
+            _stopRequestedOutput = null;
+
+        if (wasStopRequested || e.Exception is not null || _reader is null)
+            return;
+
+        var remaining = _reader.TotalTime - _reader.CurrentTime;
+        if (remaining <= TimeSpan.FromMilliseconds(350))
             TrackEnded?.Invoke(this, EventArgs.Empty);
     }
 
@@ -128,8 +142,8 @@ public sealed class NAudioPlayerService : IAudioPlayerService
             _output = null;
         }
 
+        _stopRequestedOutput = null;
         _reader?.Dispose();
         _reader = null;
     }
 }
-

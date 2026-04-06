@@ -16,6 +16,15 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Remove="obj_temp\**\*.cs" />
+        <Compile Remove="bin_temp\**\*.cs" />
+        <EmbeddedResource Remove="obj_temp\**\*" />
+        <EmbeddedResource Remove="bin_temp\**\*" />
+        <None Remove="obj_temp\**\*" />
+        <None Remove="bin_temp\**\*" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.3.12"/>
         <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.12" />
         <PackageReference Include="Avalonia.Desktop" Version="11.3.12"/>

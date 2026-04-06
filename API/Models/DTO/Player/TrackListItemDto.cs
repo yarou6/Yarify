@@ -9,6 +9,8 @@ public sealed class TrackListItemDto
     public string? StreamUrl { get; set; }
     public string? LocalPath { get; set; }
     public string? CoverPath { get; set; }
+    public int PlayCount { get; set; }
     public int ArtistUserId { get; set; }
     public int? AlbumId { get; set; }
+    public string? AlbumTitle { get; set; }
 }
