@@ -5,53 +5,38 @@
         xmlns:vm="clr-namespace:MVVM.ViewModels"
         x:DataType="vm:LoginViewModel"
         mc:Ignorable="d"
-        d:DesignWidth="1080"
-        d:DesignHeight="680"
+        d:DesignWidth="520"
+        d:DesignHeight="430"
         x:Class="MVVM.Views.LoginWindow"
         Title="Yarify Login"
-        Width="1080"
-        Height="680"
-        MinWidth="920"
-        MinHeight="620"
+        Width="520"
+        Height="430"
+        MinWidth="420"
+        MinHeight="360"
+        Background="{StaticResource BgSurfaceBrush}"
         WindowStartupLocation="CenterScreen">
 
-    <Grid Margin="20" ColumnDefinitions="1.2*,1*" ColumnSpacing="12">
-        <Border Grid.Column="0" Classes="panel-soft" Padding="46">
-            <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="16">
-                <TextBlock Text="YARIFY" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                <TextBlock Grid.Row="1" Text="Твоя музыка.\nТвой ритм." FontSize="54" FontWeight="Bold"/>
-                <TextBlock Grid.Row="2" Text="Открой медиатеку, очередь и любимые треки в едином темном пространстве." TextWrapping="Wrap" FontSize="17" Foreground="{StaticResource TextMutedBrush}"/>
-                <Border Grid.Row="3" Classes="panel" Padding="16" VerticalAlignment="Bottom">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="В стиле стриминга" FontWeight="SemiBold"/>
-                        <TextBlock Text="Чистый интерфейс, поиск сверху, профиль справа и мощный нижний плеер." Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </Border>
+    <Grid Margin="16">
+        <StackPanel Width="360" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+            <TextBlock Text="YARIFY" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Вход" FontSize="26" FontWeight="Bold" Margin="0,0,0,4" HorizontalAlignment="Center"/>
 
-        <Border Grid.Column="1" Classes="panel" Padding="42">
-            <StackPanel Width="380" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="14">
-                <TextBlock FontSize="32" FontWeight="Bold" Text="Вход"/>
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8" Text="Войдите в аккаунт Yarify"/>
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Логин"/>
+            <TextBox Text="{Binding Login}" Watermark="your_login"/>
 
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Логин"/>
-                <TextBox Text="{Binding Login}" Watermark="your_login"/>
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Пароль"/>
+            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="********"/>
 
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Пароль"/>
-                <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="********"/>
+            <CheckBox IsChecked="{Binding RememberMe}" Content="Оставаться в системе" Margin="0,2,0,6"/>
 
-                <CheckBox IsChecked="{Binding RememberMe}" Content="Оставаться в системе" Margin="0,4,0,8"/>
+            <Button Classes="primary" Content="Войти" Command="{Binding LoginCommand}" Height="40"/>
 
-                <Button Classes="primary" Content="Войти" Command="{Binding LoginCommand}"/>
-
-                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0,10,0,0">
-                    <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Нет аккаунта?"/>
-                    <Button Classes="link" Content="Регистрация" Command="{Binding OpenRegisterCommand}"/>
-                </StackPanel>
-
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Text="{Binding Status}"/>
+            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0,6,0,0">
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Нет аккаунта?"/>
+                <Button Classes="link" Content="Регистрация" Command="{Binding OpenRegisterCommand}"/>
             </StackPanel>
-        </Border>
+
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Text="{Binding Status}" Margin="0,2,0,0"/>
+        </StackPanel>
     </Grid>
 </Window>

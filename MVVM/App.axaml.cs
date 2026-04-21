@@ -10,6 +10,7 @@ using MVVM.Services;
 using MVVM.ViewModels;
 using MVVM.Views;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace MVVM;
 
@@ -34,11 +35,12 @@ public partial class App : Application
             DisableAvaloniaDataAnnotationValidation();
 
             _desktop = desktop;
-            var authApiClient = new AuthApiClient("http://localhost:5048");
+            var apiBaseUrl = Environment.GetEnvironmentVariable("YARIFY_API_BASE_URL");
+            var authApiClient = new AuthApiClient(apiBaseUrl);
             var sessionStore = new SessionStore();
             _authSessionService = new AuthSessionService(authApiClient, sessionStore);
             _authState = new AuthState();
-            _audioPlayerService = new NAudioPlayerService();
+            _audioPlayerService = CreateAudioPlayerService();
             _playerSettingsStore = new PlayerSettingsStore();
 
             StartAsync();
@@ -185,5 +187,16 @@ public partial class App : Application
         {
             BindingPlugins.DataValidators.Remove(plugin);
         }
+    }
+
+    private static IAudioPlayerService CreateAudioPlayerService()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return new NAudioPlayerService();
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return new LibVlcAudioPlayerService();
+
+        return new LibVlcAudioPlayerService();
     }
 }

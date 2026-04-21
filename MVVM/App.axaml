@@ -144,6 +144,20 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
 
+        <Style Selector="CheckBox:checked /template/ Path">
+            <Setter Property="Stroke" Value="{StaticResource TextStrongBrush}"/>
+        </Style>
+
+        <Style Selector="CheckBox:checked /template/ Border">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="CheckBox:checked:pointerover /template/ Border">
+            <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}"/>
+        </Style>
+
         <Style Selector="Button.nav">
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="14,10"/>

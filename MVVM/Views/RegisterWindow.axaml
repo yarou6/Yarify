@@ -5,59 +5,45 @@
         xmlns:vm="clr-namespace:MVVM.ViewModels"
         x:DataType="vm:RegisterViewModel"
         mc:Ignorable="d"
-        d:DesignWidth="1080"
-        d:DesignHeight="720"
+        d:DesignWidth="560"
+        d:DesignHeight="560"
         x:Class="MVVM.Views.RegisterWindow"
         Title="Yarify Register"
-        Width="1080"
-        Height="720"
-        MinWidth="920"
-        MinHeight="640"
+        Width="560"
+        Height="560"
+        MinWidth="460"
+        MinHeight="480"
+        Background="{StaticResource BgSurfaceBrush}"
         WindowStartupLocation="CenterScreen">
 
-    <Grid Margin="20" ColumnDefinitions="1.15*,1*" ColumnSpacing="12">
-        <Border Grid.Column="0" Classes="panel-soft" Padding="46">
-            <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="16">
-                <TextBlock Text="YARIFY" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}"/>
-                <TextBlock Grid.Row="1" Text="Создай свой\nмузыкальный дом." FontSize="52" FontWeight="Bold"/>
-                <TextBlock Grid.Row="2" Text="Регистрация открывает персональные плейлисты, лайки и гибкое управление воспроизведением." TextWrapping="Wrap" FontSize="17" Foreground="{StaticResource TextMutedBrush}"/>
-                <Border Grid.Row="3" Classes="panel" Padding="16" VerticalAlignment="Bottom">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Готово к новому UI" FontWeight="SemiBold"/>
-                        <TextBlock Text="После входа вы получите черно-бордовую архитектуру: профиль, левая навигация, контент и плеер." Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </Border>
+    <Grid Margin="16">
+        <StackPanel Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+            <TextBlock Text="YARIFY" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Регистрация" FontSize="26" FontWeight="Bold" Margin="0,0,0,4" HorizontalAlignment="Center"/>
 
-        <Border Grid.Column="1" Classes="panel" Padding="38">
-            <StackPanel Width="390" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
-                <TextBlock FontSize="30" FontWeight="Bold" Text="Регистрация"/>
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Логин"/>
+            <TextBox Text="{Binding Login}" Watermark="your_login"/>
 
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Логин"/>
-                <TextBox Text="{Binding Login}" Watermark="your_login"/>
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Email"/>
+            <TextBox Text="{Binding Email}" Watermark="you@email.com"/>
 
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Email"/>
-                <TextBox Text="{Binding Email}" Watermark="you@email.com"/>
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Display Name"/>
+            <TextBox Text="{Binding DisplayName}" Watermark="Ваше имя"/>
 
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Display Name"/>
-                <TextBox Text="{Binding DisplayName}" Watermark="Ваше имя"/>
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Пароль"/>
+            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="********"/>
 
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Пароль"/>
-                <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="********"/>
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Повтор пароля"/>
+            <TextBox Text="{Binding ConfirmPassword}" PasswordChar="*" Watermark="********"/>
 
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Повтор пароля"/>
-                <TextBox Text="{Binding ConfirmPassword}" PasswordChar="*" Watermark="********"/>
+            <Button Classes="primary" Content="Создать аккаунт" Command="{Binding RegisterCommand}" Margin="0,8,0,0" Height="40"/>
 
-                <Button Classes="primary" Content="Создать аккаунт" Command="{Binding RegisterCommand}" Margin="0,8,0,0"/>
-
-                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0,8,0,0">
-                    <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Уже есть аккаунт?"/>
-                    <Button Classes="link" Content="Войти" Command="{Binding BackToLoginCommand}"/>
-                </StackPanel>
-
-                <TextBlock Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Text="{Binding Status}"/>
+            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" Margin="0,8,0,0">
+                <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Уже есть аккаунт?"/>
+                <Button Classes="link" Content="Войти" Command="{Binding BackToLoginCommand}"/>
             </StackPanel>
-        </Border>
+
+            <TextBlock Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Text="{Binding Status}"/>
+        </StackPanel>
     </Grid>
 </Window>

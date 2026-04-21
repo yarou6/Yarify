@@ -13,6 +13,7 @@ namespace MVVM.Services;
 
 public sealed class AuthApiClient
 {
+    public const string DefaultBaseUrl = "http://localhost:5048";
     private readonly HttpClient _httpClient;
     private static readonly object FileLookupSync = new();
     private static readonly Dictionary<string, string?> FileLookupCache = new(StringComparer.OrdinalIgnoreCase);
@@ -21,11 +22,15 @@ public sealed class AuthApiClient
         PropertyNameCaseInsensitive = true
     };
 
-    public AuthApiClient(string baseUrl = "http://localhost:5048")
+    public AuthApiClient(string? baseUrl = null)
     {
+        var resolvedBaseUrl = string.IsNullOrWhiteSpace(baseUrl) ? DefaultBaseUrl : baseUrl;
+        if (!Uri.TryCreate(resolvedBaseUrl, UriKind.Absolute, out var baseUri))
+            baseUri = new Uri(DefaultBaseUrl);
+
         _httpClient = new HttpClient
         {
-            BaseAddress = new Uri(baseUrl)
+            BaseAddress = baseUri
         };
     }
 
@@ -232,7 +237,7 @@ public sealed class AuthApiClient
         if (Uri.TryCreate(path, UriKind.Absolute, out var absolute))
             return absolute.ToString();
 
-        var baseUri = _httpClient.BaseAddress ?? new Uri("http://localhost:5048");
+        var baseUri = _httpClient.BaseAddress ?? new Uri(DefaultBaseUrl);
         var normalized = normalizedInput.Replace('\\', '/');
         if (!normalized.StartsWith("/", StringComparison.Ordinal))
             normalized = "/" + normalized;
