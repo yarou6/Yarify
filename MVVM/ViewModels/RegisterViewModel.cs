@@ -30,7 +30,6 @@ public class RegisterViewModel : BaseVM
         BackToLoginCommand = new RelayCommand(BackToLogin, () => !IsBusy);
         RegisterCommand = new AsyncRelayCommand(RegisterAsync, () => !IsBusy);
     }
-
     public string Login
     {
         get => _login;
