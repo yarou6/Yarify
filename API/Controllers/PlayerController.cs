@@ -802,6 +802,30 @@ public class PlayerController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("queue/{songId:int}/next")]
+    public async Task<ActionResult> AddToQueueNext(int songId)
+    {
+        var userId = _userContext.GetRequiredUserId(User);
+
+        var song = await _db.Songs.FirstOrDefaultAsync(s => s.Id == songId && (s.IsActive == null || s.IsActive == true));
+        if (song is null)
+            return NotFound(new ApiErrorResponse { Message = "Трек не найден." });
+
+        await _db.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE playbackqueue SET Position = Position + 1 WHERE UserId = {userId}");
+
+        _db.Playbackqueues.Add(new Playbackqueue
+        {
+            UserId = userId,
+            SongId = songId,
+            Position = 1,
+            AddedAt = DateTime.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+        return Ok();
+    }
+
     [HttpDelete("queue/{queueId:long}")]
     public async Task<ActionResult> RemoveFromQueue(long queueId)
     {
@@ -910,6 +934,7 @@ public class PlayerController : ControllerBase
             OwnerUserId = userId,
             Title = request.Title.Trim(),
             Description = request.Description?.Trim(),
+            CoverPath = request.CoverPath?.Trim(),
             IsPublic = request.IsPublic,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -943,6 +968,7 @@ public class PlayerController : ControllerBase
 
         playlist.Title = request.Title.Trim();
         playlist.Description = request.Description?.Trim();
+        playlist.CoverPath = request.CoverPath?.Trim();
         playlist.IsPublic = request.IsPublic;
         playlist.UpdatedAt = DateTime.UtcNow;
 
@@ -957,6 +983,26 @@ public class PlayerController : ControllerBase
             CoverPath = playlist.CoverPath,
             TracksCount = playlist.Playlistsongs.Count
         });
+    }
+
+    [HttpPost("playlists/{playlistId:int}/upload-cover")]
+    [RequestSizeLimit(20_000_000)]
+    public async Task<ActionResult<MediaUploadResponseDto>> UploadPlaylistCover(int playlistId, IFormFile file)
+    {
+        var userId = _userContext.GetRequiredUserId(User);
+        var playlist = await _db.Playlists.FirstOrDefaultAsync(p => p.Id == playlistId && p.OwnerUserId == userId);
+        if (playlist is null)
+            return NotFound(new ApiErrorResponse { Message = "Плейлист не найден." });
+
+        if (file is null || file.Length == 0)
+            return BadRequest(new ApiErrorResponse { Message = "Файл не передан." });
+
+        var uploaded = await SaveFormFileAsync(file, "uploads/cover", "playlist", playlistId);
+        playlist.CoverPath = uploaded.RelativePath;
+        playlist.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return Ok(uploaded);
     }
     [HttpDelete("playlists/{playlistId:int}")]
     public async Task<ActionResult> DeletePlaylist(int playlistId)
@@ -1627,6 +1673,26 @@ public class PlayerController : ControllerBase
             ArtistUserId = s.ArtistUserId,
             AlbumId = s.AlbumId,
             AlbumTitle = s.Album != null ? s.Album.Title : null
+        };
+    }
+
+    private static async Task<MediaUploadResponseDto> SaveFormFileAsync(IFormFile file, string folder, string entityType, int entityId)
+    {
+        var extension = Path.GetExtension(file.FileName);
+        var fileName = $"{entityType}_{entityId}_{Guid.NewGuid():N}{extension}";
+        var relativePath = Path.Combine(folder, fileName).Replace('\\', '/');
+        var absolutePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(absolutePath)!);
+
+        await using (var stream = System.IO.File.Create(absolutePath))
+            await file.CopyToAsync(stream);
+
+        return new MediaUploadResponseDto
+        {
+            RelativePath = "/" + relativePath,
+            Length = file.Length,
+            ContentType = file.ContentType ?? "application/octet-stream"
         };
     }
     private async Task SwapQueuePositionsAsync(Playbackqueue first, Playbackqueue second)

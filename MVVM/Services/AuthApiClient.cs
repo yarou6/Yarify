@@ -143,6 +143,9 @@ public sealed class AuthApiClient
     public async Task<string?> AddToQueueAsync(int songId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, $"/api/player/queue/{songId}");
 
+    public async Task<string?> AddToQueueNextAsync(int songId) =>
+        await SendWithoutResponseBodyAsync(HttpMethod.Post, $"/api/player/queue/{songId}/next");
+
     public async Task<string?> RemoveFromQueueAsync(long queueId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Delete, $"/api/player/queue/{queueId}");
 
@@ -155,16 +158,33 @@ public sealed class AuthApiClient
     public async Task<string?> ClearQueueAsync() =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, "/api/player/queue/clear");
 
-    public async Task<(IReadOnlyList<PlaylistListItemDto> Data, string? Error)> GetPlaylistsAsync() =>
-        await GetListAsync<PlaylistListItemDto>("/api/player/playlists");
+    public async Task<(IReadOnlyList<PlaylistListItemDto> Data, string? Error)> GetPlaylistsAsync()
+    {
+        var (items, error) = await GetListAsync<PlaylistListItemDto>("/api/player/playlists");
+        NormalizePlaylists(items);
+        return (items, error);
+    }
 
-    public async Task<(PlaylistListItemDto? Data, string? Error)> CreatePlaylistAsync(CreatePlaylistRequestDto payload) =>
-        await PostJsonAsync<CreatePlaylistRequestDto, PlaylistListItemDto>("/api/player/playlists", payload);
+    public async Task<(PlaylistListItemDto? Data, string? Error)> CreatePlaylistAsync(CreatePlaylistRequestDto payload)
+    {
+        var (item, error) = await PostJsonAsync<CreatePlaylistRequestDto, PlaylistListItemDto>("/api/player/playlists", payload);
+        if (item is not null)
+            NormalizePlaylists(new[] { item });
+        return (item, error);
+    }
 
-    public async Task<(PlaylistListItemDto? Data, string? Error)> UpdatePlaylistAsync(int playlistId, UpdatePlaylistRequestDto payload) =>
-        await PutJsonAsync<UpdatePlaylistRequestDto, PlaylistListItemDto>($"/api/player/playlists/{playlistId}", payload);
+    public async Task<(PlaylistListItemDto? Data, string? Error)> UpdatePlaylistAsync(int playlistId, UpdatePlaylistRequestDto payload)
+    {
+        var (item, error) = await PutJsonAsync<UpdatePlaylistRequestDto, PlaylistListItemDto>($"/api/player/playlists/{playlistId}", payload);
+        if (item is not null)
+            NormalizePlaylists(new[] { item });
+        return (item, error);
+    }
     public async Task<string?> DeletePlaylistAsync(int playlistId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Delete, $"/api/player/playlists/{playlistId}");
+
+    public async Task<string?> UploadPlaylistCoverAsync(int playlistId, string filePath) =>
+        await UploadLibraryFileAsync($"/api/player/playlists/{playlistId}/upload-cover", filePath);
 
     public async Task<(IReadOnlyList<TrackListItemDto> Data, string? Error)> GetPlaylistTracksAsync(int playlistId)
     {
@@ -218,6 +238,15 @@ public sealed class AuthApiClient
 
     public async Task<(IReadOnlyList<FollowingArtistItemDto> Data, string? Error)> GetFollowingArtistsAsync() =>
         await GetListAsync<FollowingArtistItemDto>("/api/player/social/following");
+
+    public async Task<(IReadOnlyList<ListeningHistoryItemDto> Data, string? Error)> GetRecentHistoryAsync(int take = 50)
+    {
+        var normalizedTake = Math.Clamp(take, 1, 200);
+        var (items, error) = await GetListAsync<ListeningHistoryItemDto>($"/api/player/history/recent?take={normalizedTake}");
+        foreach (var item in items.Where(i => i.Track is not null))
+            NormalizeTracks(new[] { item.Track });
+        return (items, error);
+    }
 
     public async Task<(UserSubscriptionDto? Data, string? Error)> GetMySubscriptionAsync() =>
         await GetAsync<UserSubscriptionDto>("/api/subscriptions/me");
@@ -526,6 +555,15 @@ public sealed class AuthApiClient
             track.CoverPath = ResolveMediaDisplaySource(track.CoverPath);
             track.CoverBitmap = TryLoadBitmap(track.CoverPath);
             track.LocalPath = ResolvePlaybackSource(track.LocalPath);
+        }
+    }
+
+    private void NormalizePlaylists(IEnumerable<PlaylistListItemDto> playlists)
+    {
+        foreach (var playlist in playlists)
+        {
+            playlist.CoverPath = ResolveMediaDisplaySource(playlist.CoverPath);
+            playlist.CoverBitmap = TryLoadBitmap(playlist.CoverPath);
         }
     }
 

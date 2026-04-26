@@ -455,6 +455,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(CurrentTrackTitle));
         OnPropertyChanged(nameof(CurrentTrackArtist));
         OnPropertyChanged(nameof(CurrentTrackCoverImage));
+        UpdateNowPlayingPreview();
         OnPropertyChanged(nameof(IsPlaybackActive));
         OnPropertyChanged(nameof(IsPlaybackInactive));
         RaiseCanExecutes();
@@ -530,6 +531,9 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(ArtistFollowersText));
         OnPropertyChanged(nameof(ArtistFollowButtonText));
         OnPropertyChanged(nameof(ArtistAvatarImage));
+        OnPropertyChanged(nameof(PlaylistCoverImage));
+        OnPropertyChanged(nameof(PlaylistTitleText));
+        OnPropertyChanged(nameof(PlaylistMetaText));
         OnPropertyChanged(nameof(IsArtistReleaseAllFilter));
         OnPropertyChanged(nameof(IsArtistReleaseAlbumFilter));
         OnPropertyChanged(nameof(IsArtistReleaseSingleFilter));
@@ -538,7 +542,6 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(CanShowAllArtistReleases));
     }
 }
-
 
 
 

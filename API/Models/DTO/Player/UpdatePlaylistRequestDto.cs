@@ -11,6 +11,9 @@ public sealed class UpdatePlaylistRequestDto
     [StringLength(1200)]
     public string? Description { get; set; }
 
+    [StringLength(500)]
+    public string? CoverPath { get; set; }
+
     public bool IsPublic { get; set; }
 }
 

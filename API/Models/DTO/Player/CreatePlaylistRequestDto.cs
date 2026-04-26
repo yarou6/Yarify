@@ -11,5 +11,8 @@ public sealed class CreatePlaylistRequestDto
     [MaxLength(1000)]
     public string? Description { get; set; }
 
+    [MaxLength(500)]
+    public string? CoverPath { get; set; }
+
     public bool IsPublic { get; set; }
 }

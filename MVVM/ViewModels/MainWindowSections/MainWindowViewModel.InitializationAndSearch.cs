@@ -33,6 +33,7 @@ public partial class MainWindowViewModel
         await LoadAddTrackGenresAsync();
         await LoadFollowingArtistsAsync();
         await LoadCurrentSubscriptionAsync();
+        await LoadHomeLibraryHighlightsAsync();
         _isInitializing = false;
     }
 
@@ -83,8 +84,7 @@ public partial class MainWindowViewModel
         GenreOptions.Add("Музыка");
         GenreOptions.Add("Подкасты");
         GenreOptions.Add("Аудиокниги");
-        if (!GenreOptions.Contains(SelectedGenre))
-            SelectedGenre = "Все";
+        SelectedGenre = "Все";
     }
 
     private async Task LoadTracksAsync()
@@ -92,7 +92,7 @@ public partial class MainWindowViewModel
         IsBusy = true;
         try
         {
-            var (items, error) = await _authSessionService.ApiClient.GetTracksAsync(SearchText, SelectedGenre, "title");
+            var (items, error) = await _authSessionService.ApiClient.GetTracksAsync(SearchText, null, "title");
             await HydrateAlbumTitlesAsync(items);
             Tracks.Clear();
             foreach (var item in items) Tracks.Add(item);
@@ -102,9 +102,9 @@ public partial class MainWindowViewModel
                 : $"Ошибка треков: {error}";
 
             await BuildSearchResultsAsync();
-            OnPropertyChanged(nameof(FoundTracksText));
             if (Tracks.Count > 0 && SelectedTrack is null) SelectedTrack = Tracks[0];
             SeedRecentTracks();
+            UpdateNowPlayingPreview();
         }
         finally
         {

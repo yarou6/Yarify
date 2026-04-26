@@ -57,6 +57,7 @@ public partial class MainWindowViewModel : BaseVM
     private string _selectedSearchType = "Все";
     private string _newPlaylistTitle = string.Empty;
     private string _newPlaylistDescription = string.Empty;
+    private string _newPlaylistCoverPath = string.Empty;
     private bool _newPlaylistIsPublic;
     private bool _isPlaylistModalOpen;
     private bool _isPlaylistEditMode;
@@ -122,6 +123,10 @@ public partial class MainWindowViewModel : BaseVM
     private string _albumTitleText = "Альбом";
     private string _albumArtistNameText = string.Empty;
     private string _albumMetaText = string.Empty;
+    private string _playlistTitleText = "Плейлист";
+    private string _playlistMetaText = string.Empty;
+    private string _playlistCoverPath = string.Empty;
+    private Bitmap? _playlistCoverBitmap;
     private SubscriptionPlanDto? _selectedSubscriptionPlan;
     private SubscriptionPlanDto? _freePlan;
     private SubscriptionPlanDto? _studentPlan;
@@ -144,6 +149,8 @@ public partial class MainWindowViewModel : BaseVM
         ArtistReleases = new ObservableCollection<ArtistReleaseItemDto>();
         AlbumTracks = new ObservableCollection<TrackListItemDto>();
         RecentTracks = new ObservableCollection<TrackListItemDto>();
+        HomeLikedRecentTracks = new ObservableCollection<TrackListItemDto>();
+        HomeRecentCollections = new ObservableCollection<HomeMediaCollectionItemDto>();
         SubscriptionPlans = new ObservableCollection<SubscriptionPlanDto>();
         SearchResultTracks = new ObservableCollection<TrackListItemDto>();
         SearchResultArtists = new ObservableCollection<ArtistSearchItemDto>();
@@ -233,7 +240,7 @@ public partial class MainWindowViewModel : BaseVM
         CloseAddTrackModalCommand = new RelayCommand(CloseAddTrackModal);
         SubmitAddTrackCommand = new AsyncRelayCommand(SubmitAddTrackAsync, CanSubmitAddTrack);
         AddCurrentTrackToLikedCommand = new AsyncRelayCommand(AddCurrentTrackToLikedAsync, () => CurrentTrack is not null);
-        AddCurrentTrackToPlaylistCommand = new AsyncRelayCommand(AddCurrentTrackToPlaylistAsync, () => CurrentTrack is not null && SelectedPlaylist is not null);
+        AddCurrentTrackToPlaylistCommand = new AsyncRelayCommand(AddCurrentTrackToPlaylistAsync, () => CurrentTrack is not null);
         AddTrackCommand = new RelayCommand(AddTrackAction);
         ChangePasswordCommand = new AsyncRelayCommand(ChangePasswordAsync, CanChangePassword);
         SaveArtistNameCommand = new AsyncRelayCommand(SaveArtistNameAsync, CanSaveArtistName);
@@ -267,6 +274,8 @@ public partial class MainWindowViewModel : BaseVM
     public ObservableCollection<ArtistReleaseItemDto> ArtistReleases { get; }
     public ObservableCollection<TrackListItemDto> AlbumTracks { get; }
     public ObservableCollection<TrackListItemDto> RecentTracks { get; }
+    public ObservableCollection<TrackListItemDto> HomeLikedRecentTracks { get; }
+    public ObservableCollection<HomeMediaCollectionItemDto> HomeRecentCollections { get; }
     public ObservableCollection<string> GenreOptions { get; }
     public ObservableCollection<SubscriptionPlanDto> SubscriptionPlans { get; }
     public ObservableCollection<TrackListItemDto> SearchResultTracks { get; }
@@ -293,6 +302,7 @@ public partial class MainWindowViewModel : BaseVM
                 return;
             if (value is not null && ActiveSection != "playlists")
                 ActiveSection = "playlists";
+            UpdatePlaylistHeaderFromSelection();
             _ = LoadPlaylistTracksAsync();
         }
     }
@@ -462,6 +472,7 @@ public partial class MainWindowViewModel : BaseVM
     }
     public string NewPlaylistTitle { get => _newPlaylistTitle; set => SetProperty(ref _newPlaylistTitle, value, RaiseCanExecutes); }
     public string NewPlaylistDescription { get => _newPlaylistDescription; set => SetProperty(ref _newPlaylistDescription, value); }
+    public string NewPlaylistCoverPath { get => _newPlaylistCoverPath; set => SetProperty(ref _newPlaylistCoverPath, value); }
     public bool NewPlaylistIsPublic { get => _newPlaylistIsPublic; set => SetProperty(ref _newPlaylistIsPublic, value); }
     public bool IsPlaylistModalOpen { get => _isPlaylistModalOpen; set => SetProperty(ref _isPlaylistModalOpen, value); }
     public bool IsPlaylistEditMode { get => _isPlaylistEditMode; set => SetProperty(ref _isPlaylistEditMode, value); }
@@ -587,8 +598,34 @@ public partial class MainWindowViewModel : BaseVM
         }
     }
 
-    public bool IsShuffleEnabled { get => _isShuffleEnabled; set { if (SetProperty(ref _isShuffleEnabled, value)) { OnPropertyChanged(nameof(ShuffleLabel)); OnPropertyChanged(nameof(IsRepeatOrShuffleActive)); } } }
-    public PlaybackMode PlaybackMode { get => _playbackMode; set { if (SetProperty(ref _playbackMode, value)) { OnPropertyChanged(nameof(RepeatLabel)); OnPropertyChanged(nameof(IsRepeatEnabled)); OnPropertyChanged(nameof(RepeatGlyph)); OnPropertyChanged(nameof(IsRepeatOrShuffleActive)); } } }
+    public bool IsShuffleEnabled
+    {
+        get => _isShuffleEnabled;
+        set
+        {
+            if (!SetProperty(ref _isShuffleEnabled, value))
+                return;
+
+            OnPropertyChanged(nameof(ShuffleLabel));
+            OnPropertyChanged(nameof(IsRepeatOrShuffleActive));
+            UpdateNowPlayingPreview();
+        }
+    }
+    public PlaybackMode PlaybackMode
+    {
+        get => _playbackMode;
+        set
+        {
+            if (!SetProperty(ref _playbackMode, value))
+                return;
+
+            OnPropertyChanged(nameof(RepeatLabel));
+            OnPropertyChanged(nameof(IsRepeatEnabled));
+            OnPropertyChanged(nameof(RepeatGlyph));
+            OnPropertyChanged(nameof(IsRepeatOrShuffleActive));
+            UpdateNowPlayingPreview();
+        }
+    }
     public bool IsQueuePanelOpen { get => _isQueuePanelOpen; set => SetProperty(ref _isQueuePanelOpen, value); }
     public bool IsOverviewOpen
     {
@@ -629,6 +666,8 @@ public partial class MainWindowViewModel : BaseVM
     public string AlbumTitleText { get => _albumTitleText; private set => SetProperty(ref _albumTitleText, value); }
     public string AlbumArtistNameText { get => _albumArtistNameText; private set => SetProperty(ref _albumArtistNameText, value); }
     public string AlbumMetaText { get => _albumMetaText; private set => SetProperty(ref _albumMetaText, value); }
+    public string PlaylistTitleText { get => _playlistTitleText; private set => SetProperty(ref _playlistTitleText, value); }
+    public string PlaylistMetaText { get => _playlistMetaText; private set => SetProperty(ref _playlistMetaText, value); }
     public int AlbumTotalPlays => AlbumTracks.Sum(t => Math.Max(0, t.PlayCount));
     public string AlbumTotalPlaysText => $"{AlbumTotalPlays:N0} прослушиваний";
     public string ArtistHeroCoverPath { get => _artistHeroCoverPath; set => SetProperty(ref _artistHeroCoverPath, value); }
@@ -659,6 +698,8 @@ public partial class MainWindowViewModel : BaseVM
     public object? ArtistAvatarImage => (object?)ArtistAvatarBitmap ?? (string.IsNullOrWhiteSpace(ArtistAvatarPath) ? null : ArtistAvatarPath);
     public string AlbumCoverPath { get => _albumCoverPath; set => SetProperty(ref _albumCoverPath, value); }
     public object? AlbumCoverImage => (object?)_albumCoverBitmap ?? (string.IsNullOrWhiteSpace(AlbumCoverPath) ? null : AlbumCoverPath);
+    public string PlaylistCoverPath { get => _playlistCoverPath; private set => SetProperty(ref _playlistCoverPath, value); }
+    public object? PlaylistCoverImage => (object?)_playlistCoverBitmap ?? (string.IsNullOrWhiteSpace(PlaylistCoverPath) ? null : PlaylistCoverPath);
 
     public int VolumePercent
     {
@@ -696,6 +737,11 @@ public partial class MainWindowViewModel : BaseVM
     public string CurrentTrackTitle => CurrentTrack?.Title ?? "Трек не выбран";
     public string CurrentTrackArtist => CurrentTrack?.Artist ?? string.Empty;
     public object? CurrentTrackCoverImage => CurrentTrack?.CoverImage;
+    public TrackListItemDto? NextTrackPreview => GetUpcomingTrackPreview();
+    public string NextTrackTitle => NextTrackPreview?.Title ?? CurrentTrackTitle;
+    public string NextTrackArtist => NextTrackPreview?.Artist ?? CurrentTrackArtist;
+    public object? NextTrackCoverImage => NextTrackPreview?.CoverImage ?? CurrentTrackCoverImage;
+    public IReadOnlyList<QueueItemDto> UpcomingQueueItems => BuildUpcomingQueueItems();
     public bool IsPlaybackActive => _audioPlayer.IsPlaying;
     public bool IsPlaybackInactive => !_audioPlayer.IsPlaying;
     public string CurrentArtistMonthlyListenersText => $"{Math.Max(0, (SelectedArtistTrack ?? CurrentTrack ?? SelectedTrack)?.PlayCount ?? _artistMonthlyStreams):N0} прослушиваний";

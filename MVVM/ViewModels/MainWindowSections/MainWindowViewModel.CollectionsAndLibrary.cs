@@ -31,6 +31,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(LikeButtonText));
         OnPropertyChanged(nameof(CanMoveQueueUp));
         OnPropertyChanged(nameof(CanMoveQueueDown));
+        await LoadHomeLibraryHighlightsAsync();
     }
 
     private async Task LoadQueueAsync()
@@ -55,6 +56,8 @@ public partial class MainWindowViewModel
 
         OnPropertyChanged(nameof(CanMoveQueueUp));
         OnPropertyChanged(nameof(CanMoveQueueDown));
+        OnPropertyChanged(nameof(UpcomingQueueItems));
+        UpdateNowPlayingPreview();
     }
 
     private async Task LoadPlaylistsAsync()
@@ -64,10 +67,29 @@ public partial class MainWindowViewModel
 
         Playlists.Clear();
         foreach (var item in items) Playlists.Add(item);
-        if (Playlists.Count > 0 && SelectedPlaylist is null) SelectedPlaylist = Playlists[0];
+        if (Playlists.Count == 0)
+        {
+            SelectedPlaylist = null;
+            PlaylistTitleText = "Плейлист";
+            PlaylistMetaText = "Выбери или создай плейлист";
+            PlaylistCoverPath = string.Empty;
+            _playlistCoverBitmap = null;
+            OnPropertyChanged(nameof(PlaylistCoverImage));
+        }
+        else
+        {
+            if (SelectedPlaylist is null)
+                SelectedPlaylist = Playlists[0];
+            else
+                SelectedPlaylist = Playlists.FirstOrDefault(p => p.Id == SelectedPlaylist.Id) ?? Playlists[0];
+
+            UpdatePlaylistHeaderFromSelection();
+        }
+
         await BuildSearchResultsAsync();
         OnPropertyChanged(nameof(PublicPlaylistsCount));
         OnPropertyChanged(nameof(ProfileStatsText));
+        await LoadHomeLibraryHighlightsAsync();
     }
 
     private async Task LoadPlaylistTracksAsync()
@@ -79,7 +101,15 @@ public partial class MainWindowViewModel
         if (!string.IsNullOrWhiteSpace(error)) { Status = $"Ошибка треков плейлиста: {error}"; return; }
         await HydrateAlbumTitlesAsync(items);
 
-        foreach (var item in items) PlaylistTracks.Add(item);
+        var order = 1;
+        foreach (var item in items)
+        {
+            item.TrackOrder = order++;
+            PlaylistTracks.Add(item);
+        }
+        SelectedPlaylistTrack = PlaylistTracks.FirstOrDefault();
+
+        UpdatePlaylistHeaderFromSelection();
     }
 
     private async Task HydrateAlbumTitlesAsync(IEnumerable<TrackListItemDto> tracks)
@@ -129,6 +159,19 @@ public partial class MainWindowViewModel
         await LoadQueueAsync();
     }
 
+    public async Task AddTrackToQueueNextAsync(TrackListItemDto track)
+    {
+        var error = await _authSessionService.ApiClient.AddToQueueNextAsync(track.Id);
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            Status = $"Ошибка очереди: {error}";
+            return;
+        }
+
+        await LoadQueueAsync();
+        Status = $"Трек \"{track.Title}\" будет проигран следующим.";
+    }
+
     private async Task RemoveSelectedQueueAsync()
     {
         if (SelectedQueueItem is null) return;
@@ -162,17 +205,34 @@ public partial class MainWindowViewModel
 
     private async Task CreatePlaylistAsync()
     {
+        var localCoverPath = IsExistingLocalFile(NewPlaylistCoverPath) ? NewPlaylistCoverPath.Trim() : null;
+        var coverPath = string.IsNullOrWhiteSpace(localCoverPath) && !string.IsNullOrWhiteSpace(NewPlaylistCoverPath)
+            ? NewPlaylistCoverPath.Trim()
+            : null;
+
         var (playlist, error) = await _authSessionService.ApiClient.CreatePlaylistAsync(new CreatePlaylistRequestDto
         {
             Title = NewPlaylistTitle.Trim(),
             Description = string.IsNullOrWhiteSpace(NewPlaylistDescription) ? null : NewPlaylistDescription.Trim(),
+            CoverPath = coverPath,
             IsPublic = NewPlaylistIsPublic
         });
 
         if (!string.IsNullOrWhiteSpace(error)) { Status = $"Ошибка создания плейлиста: {error}"; return; }
 
+        if (playlist is not null && !string.IsNullOrWhiteSpace(localCoverPath))
+        {
+            var uploadError = await _authSessionService.ApiClient.UploadPlaylistCoverAsync(playlist.Id, localCoverPath);
+            if (!string.IsNullOrWhiteSpace(uploadError))
+            {
+                Status = $"Плейлист создан, но обложка не загружена: {uploadError}";
+                return;
+            }
+        }
+
         NewPlaylistTitle = string.Empty;
         NewPlaylistDescription = string.Empty;
+        NewPlaylistCoverPath = string.Empty;
         NewPlaylistIsPublic = false;
         await LoadPlaylistsAsync();
         if (playlist is not null) SelectedPlaylist = Playlists.FirstOrDefault(x => x.Id == playlist.Id);
@@ -183,6 +243,7 @@ public partial class MainWindowViewModel
         IsPlaylistEditMode = false;
         NewPlaylistTitle = string.Empty;
         NewPlaylistDescription = string.Empty;
+        NewPlaylistCoverPath = string.Empty;
         NewPlaylistIsPublic = false;
         IsPlaylistModalOpen = true;
         OnPropertyChanged(nameof(PlaylistModalHeader));
@@ -195,6 +256,7 @@ public partial class MainWindowViewModel
         IsPlaylistEditMode = true;
         NewPlaylistTitle = SelectedPlaylist.Title;
         NewPlaylistDescription = SelectedPlaylist.Description ?? string.Empty;
+        NewPlaylistCoverPath = SelectedPlaylist.CoverPath ?? string.Empty;
         NewPlaylistIsPublic = SelectedPlaylist.IsPublic;
         IsPlaylistModalOpen = true;
         OnPropertyChanged(nameof(PlaylistModalHeader));
@@ -209,14 +271,31 @@ public partial class MainWindowViewModel
         {
             if (SelectedPlaylist is null) return;
 
+            var localCoverPath = IsExistingLocalFile(NewPlaylistCoverPath) ? NewPlaylistCoverPath.Trim() : null;
+            var coverPath = string.IsNullOrWhiteSpace(localCoverPath) && !string.IsNullOrWhiteSpace(NewPlaylistCoverPath)
+                ? NewPlaylistCoverPath.Trim()
+                : (string.IsNullOrWhiteSpace(NewPlaylistCoverPath) ? null : SelectedPlaylist.CoverPath);
+
             var (playlist, updateError) = await _authSessionService.ApiClient.UpdatePlaylistAsync(SelectedPlaylist.Id, new UpdatePlaylistRequestDto
             {
                 Title = NewPlaylistTitle.Trim(),
                 Description = string.IsNullOrWhiteSpace(NewPlaylistDescription) ? null : NewPlaylistDescription.Trim(),
+                CoverPath = coverPath,
                 IsPublic = NewPlaylistIsPublic
             });
 
             if (!string.IsNullOrWhiteSpace(updateError)) { Status = $"Ошибка редактирования плейлиста: {updateError}"; return; }
+
+            if (playlist is not null && !string.IsNullOrWhiteSpace(localCoverPath))
+            {
+                var uploadError = await _authSessionService.ApiClient.UploadPlaylistCoverAsync(playlist.Id, localCoverPath);
+                if (!string.IsNullOrWhiteSpace(uploadError))
+                {
+                    Status = $"Плейлист обновлен, но обложка не загружена: {uploadError}";
+                    return;
+                }
+            }
+
             await LoadPlaylistsAsync();
             if (playlist is not null) SelectedPlaylist = Playlists.FirstOrDefault(x => x.Id == playlist.Id) ?? SelectedPlaylist;
         }
@@ -226,6 +305,7 @@ public partial class MainWindowViewModel
         }
 
         IsPlaylistModalOpen = false;
+        NewPlaylistCoverPath = string.Empty;
     }
 
     public async Task AddTrackToPlaylistByIdsAsync(int songId, int playlistId)
@@ -237,6 +317,20 @@ public partial class MainWindowViewModel
         if (SelectedPlaylist?.Id == playlistId)
             await LoadPlaylistTracksAsync();
         Status = "Трек добавлен в плейлист.";
+    }
+
+    public async Task AddCurrentTrackToPlaylistAsync(int playlistId)
+    {
+        if (CurrentTrack is null)
+            return;
+
+        var playlist = Playlists.FirstOrDefault(p => p.Id == playlistId);
+        if (playlist is null)
+            return;
+
+        await AddTrackToPlaylistByIdsAsync(CurrentTrack.Id, playlistId);
+        SelectedPlaylist = playlist;
+        Status = $"Трек \"{CurrentTrack.Title}\" добавлен в \"{playlist.Title}\".";
     }
 
     private async Task DeleteSelectedPlaylistAsync()
@@ -271,13 +365,17 @@ public partial class MainWindowViewModel
 
     private async Task AddCurrentTrackToPlaylistAsync()
     {
-        if (CurrentTrack is null || SelectedPlaylist is null)
+        if (CurrentTrack is null)
             return;
 
-        var error = await _authSessionService.ApiClient.AddTrackToPlaylistAsync(SelectedPlaylist.Id, CurrentTrack.Id);
-        if (!string.IsNullOrWhiteSpace(error)) { Status = $"Ошибка добавления в плейлист: {error}"; return; }
-        await LoadPlaylistTracksAsync();
-        Status = $"Трек \"{CurrentTrack.Title}\" добавлен в \"{SelectedPlaylist.Title}\".";
+        var playlist = SelectedPlaylist ?? Playlists.FirstOrDefault();
+        if (playlist is null)
+        {
+            Status = "Сначала создай хотя бы один плейлист.";
+            return;
+        }
+
+        await AddCurrentTrackToPlaylistAsync(playlist.Id);
     }
 
     private async Task RemoveSelectedPlaylistTrackAsync()
@@ -353,6 +451,145 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(AlbumTotalPlaysText));
         ActiveSection = "album";
         RaiseCanExecutes();
+    }
+
+    private void UpdatePlaylistHeaderFromSelection()
+    {
+        if (SelectedPlaylist is null)
+        {
+            PlaylistTitleText = "Плейлист";
+            PlaylistMetaText = "Выбери или создай плейлист";
+            PlaylistCoverPath = string.Empty;
+            _playlistCoverBitmap = null;
+            OnPropertyChanged(nameof(PlaylistCoverImage));
+            return;
+        }
+
+        PlaylistTitleText = SelectedPlaylist.Title;
+        PlaylistMetaText = $"{Math.Max(0, PlaylistTracks.Count)} треков";
+        PlaylistCoverPath = SelectedPlaylist.CoverPath ?? string.Empty;
+        _playlistCoverBitmap = SelectedPlaylist.CoverBitmap;
+        OnPropertyChanged(nameof(PlaylistCoverImage));
+    }
+
+    private async Task LoadHomeLibraryHighlightsAsync()
+    {
+        var (history, error) = await _authSessionService.ApiClient.GetRecentHistoryAsync(120);
+        if (!string.IsNullOrWhiteSpace(error))
+            return;
+
+        var likedRecentTracks = history
+            .Where(h => h.Track is not null && _likedSongIds.Contains(h.Track.Id))
+            .Select(h => h.Track)
+            .GroupBy(t => t.Id)
+            .Select(g => g.First())
+            .Take(6)
+            .ToList();
+
+        HomeLikedRecentTracks.Clear();
+        foreach (var track in likedRecentTracks)
+            HomeLikedRecentTracks.Add(track);
+
+        var collections = new List<HomeMediaCollectionItemDto>();
+        var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in history)
+        {
+            var collection = TryBuildHomeCollectionFromHistory(item);
+            if (collection is null)
+                continue;
+
+            var key = $"{collection.Kind}:{collection.Id}";
+            if (!keys.Add(key))
+                continue;
+
+            collections.Add(collection);
+            if (collections.Count >= 6)
+                break;
+        }
+
+        if (collections.Count < 6)
+        {
+            foreach (var track in RecentTracks.Where(t => t.AlbumId.HasValue))
+            {
+                var albumId = track.AlbumId!.Value;
+                var key = $"album:{albumId}";
+                if (!keys.Add(key))
+                    continue;
+
+                collections.Add(new HomeMediaCollectionItemDto
+                {
+                    Kind = "album",
+                    Id = albumId,
+                    Title = string.IsNullOrWhiteSpace(track.AlbumTitle) ? $"Альбом #{albumId}" : track.AlbumTitle!,
+                    Subtitle = "Недавно прослушано",
+                    CoverPath = track.CoverPath,
+                    CoverBitmap = track.CoverBitmap
+                });
+
+                if (collections.Count >= 6)
+                    break;
+            }
+        }
+
+        HomeRecentCollections.Clear();
+        foreach (var collection in collections.Take(6))
+            HomeRecentCollections.Add(collection);
+    }
+
+    private HomeMediaCollectionItemDto? TryBuildHomeCollectionFromHistory(ListeningHistoryItemDto item)
+    {
+        if (item.SourceId is null or <= 0)
+            return null;
+
+        if (string.Equals(item.SourceType, "Playlist", StringComparison.OrdinalIgnoreCase))
+        {
+            var playlist = Playlists.FirstOrDefault(p => p.Id == item.SourceId.Value);
+            return new HomeMediaCollectionItemDto
+            {
+                Kind = "playlist",
+                Id = item.SourceId.Value,
+                Title = playlist?.Title ?? $"Плейлист #{item.SourceId.Value}",
+                Subtitle = playlist?.Subtitle ?? "Плейлист",
+                CoverPath = playlist?.CoverPath ?? item.Track?.CoverPath,
+                CoverBitmap = playlist?.CoverBitmap ?? item.Track?.CoverBitmap
+            };
+        }
+
+        if (string.Equals(item.SourceType, "Album", StringComparison.OrdinalIgnoreCase))
+        {
+            var album = SearchResultAlbums.FirstOrDefault(a => a.Id == item.SourceId.Value);
+            return new HomeMediaCollectionItemDto
+            {
+                Kind = "album",
+                Id = item.SourceId.Value,
+                Title = album?.Title
+                    ?? (!string.IsNullOrWhiteSpace(item.Track?.AlbumTitle) ? item.Track.AlbumTitle! : $"Альбом #{item.SourceId.Value}"),
+                Subtitle = "Альбом",
+                CoverPath = album?.CoverPath ?? item.Track?.CoverPath,
+                CoverBitmap = album?.CoverBitmap ?? item.Track?.CoverBitmap
+            };
+        }
+
+        return null;
+    }
+
+    public async Task OpenHomeCollectionAsync(HomeMediaCollectionItemDto collection)
+    {
+        if (string.Equals(collection.Kind, "playlist", StringComparison.OrdinalIgnoreCase))
+        {
+            var playlist = Playlists.FirstOrDefault(p => p.Id == collection.Id);
+            if (playlist is null)
+            {
+                Status = "Этот плейлист недоступен в твоей медиатеке.";
+                return;
+            }
+
+            SelectedPlaylist = playlist;
+            ActiveSection = "playlists";
+            return;
+        }
+
+        await OpenAlbumByIdAsync(collection.Id);
     }
 }
 

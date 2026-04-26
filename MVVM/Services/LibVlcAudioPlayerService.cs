@@ -1,4 +1,5 @@
-using LibVLCSharp.Shared;
+﻿using LibVLCSharp.Shared;
+using System.Runtime.InteropServices;
 
 namespace MVVM.Services;
 
@@ -148,7 +149,11 @@ public sealed class LibVlcAudioPlayerService : IAudioPlayerService
         }
         catch (Exception ex)
         {
-            _initializationError = $"Не удалось запустить LibVLC: {ex.Message}";
+            var hint = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+                ? " На Linux установите системный VLC/libvlc (например: sudo apt install vlc libvlc-dev)."
+                : string.Empty;
+
+            _initializationError = $"Не удалось запустить LibVLC: {ex.Message}.{hint}";
             _mediaPlayer = null;
             _libVlc = null;
         }

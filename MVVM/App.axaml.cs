@@ -70,12 +70,30 @@ public partial class App : Application
     private async Task<AuthResponseDto?> TryRestoreSessionAsync(AuthSessionService authSessionService)
     {
         var session = await authSessionService.SessionStore.TryLoadAsync();
-        if (session is null || string.IsNullOrWhiteSpace(session.RefreshToken))
+        if (session is null)
             return null;
 
-        var (data, _) = await authSessionService.ApiClient.RefreshAsync(session.RefreshToken);
+        var utcNow = DateTime.UtcNow;
+        var hasAccessToken = !string.IsNullOrWhiteSpace(session.AccessToken);
+        var hasRefreshToken = !string.IsNullOrWhiteSpace(session.RefreshToken);
+        var accessTokenIsValid = hasAccessToken && session.AccessTokenExpiresAt.ToUniversalTime() > utcNow;
+        var refreshTokenIsValid = hasRefreshToken && session.RefreshTokenExpiresAt.ToUniversalTime() > utcNow;
+
+        if (!refreshTokenIsValid)
+        {
+            if (accessTokenIsValid)
+                return RestoreFromLocalSession(authSessionService, session);
+
+            await authSessionService.SessionStore.ClearAsync();
+            return null;
+        }
+
+        var (data, error) = await authSessionService.ApiClient.RefreshAsync(session.RefreshToken);
         if (data is null)
         {
+            if (accessTokenIsValid && IsLikelyNetworkError(error))
+                return RestoreFromLocalSession(authSessionService, session);
+
             await authSessionService.SessionStore.ClearAsync();
             return null;
         }
@@ -86,6 +104,45 @@ public partial class App : Application
 
         await authSessionService.SessionStore.SaveAsync(MapSession(data));
         return data;
+    }
+
+    private AuthResponseDto RestoreFromLocalSession(AuthSessionService authSessionService, SessionSnapshot session)
+    {
+        authSessionService.ApiClient.SetAccessToken(session.AccessToken);
+
+        var restored = new AuthResponseDto
+        {
+            Token = session.AccessToken,
+            ExpiresAt = session.AccessTokenExpiresAt,
+            RefreshToken = session.RefreshToken,
+            RefreshTokenExpiresAt = session.RefreshTokenExpiresAt,
+            UserId = session.UserId,
+            RoleTitle = session.RoleTitle
+        };
+
+        if (_authState is not null)
+            _authState.Current = restored;
+
+        return restored;
+    }
+
+    private static bool IsLikelyNetworkError(string? error)
+    {
+        if (string.IsNullOrWhiteSpace(error))
+            return false;
+
+        var probe = error.ToLowerInvariant();
+        return probe.Contains("timeout", StringComparison.Ordinal) ||
+               probe.Contains("timed out", StringComparison.Ordinal) ||
+               probe.Contains("dns", StringComparison.Ordinal) ||
+               probe.Contains("host", StringComparison.Ordinal) ||
+               probe.Contains("connection", StringComparison.Ordinal) ||
+               probe.Contains("network", StringComparison.Ordinal) ||
+               probe.Contains("socket", StringComparison.Ordinal) ||
+               probe.Contains("unreachable", StringComparison.Ordinal) ||
+               probe.Contains("не удалось", StringComparison.Ordinal) ||
+               probe.Contains("подключ", StringComparison.Ordinal) ||
+               probe.Contains("сет", StringComparison.Ordinal);
     }
 
     private async Task HandleAuthSuccessAsync(AuthResponseDto authData)

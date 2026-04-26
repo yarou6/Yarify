@@ -15,17 +15,58 @@ public partial class MainWindow : Window
 
     private async void TrackCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not Control { DataContext: TrackListItemDto track })
-            return;
-
-        var point = e.GetCurrentPoint(sender as Control ?? this);
-        if (point.Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+        if (sender is not Control { DataContext: TrackListItemDto track } control)
             return;
 
         if (DataContext is not MainWindowViewModel vm)
             return;
 
+        var point = e.GetCurrentPoint(control);
+        if (point.Properties.PointerUpdateKind == PointerUpdateKind.RightButtonPressed)
+        {
+            ShowTrackContextMenu(control, track, vm);
+            e.Handled = true;
+            return;
+        }
+
+        if (point.Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+            return;
+
         await vm.PlayTrackFromUiAsync(track);
+    }
+
+    private void ShowTrackContextMenu(Control anchor, TrackListItemDto track, MainWindowViewModel vm)
+    {
+        var addNext = new MenuItem { Header = "Добавить в очередь (следующим)" };
+        addNext.Click += async (_, _) => await vm.AddTrackToQueueNextAsync(track);
+
+        var addToPlaylist = new MenuItem { Header = "Добавить в плейлист" };
+        var playlistMenuItems = new List<MenuItem>();
+        foreach (var playlist in vm.Playlists)
+        {
+            var playlistItem = new MenuItem { Header = playlist.Title };
+            var playlistId = playlist.Id;
+            playlistItem.Click += async (_, _) => await vm.AddTrackToPlaylistByIdsAsync(track.Id, playlistId);
+            playlistMenuItems.Add(playlistItem);
+        }
+
+        if (vm.Playlists.Count == 0)
+        {
+            playlistMenuItems.Add(new MenuItem
+            {
+                Header = "Нет доступных плейлистов",
+                IsEnabled = false
+            });
+        }
+        addToPlaylist.ItemsSource = playlistMenuItems;
+
+        var contextMenu = new ContextMenu
+        {
+            ItemsSource = new object[] { addNext, addToPlaylist },
+            PlacementTarget = anchor
+        };
+
+        contextMenu.Open(anchor);
     }
 
     private async void AlbumCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -73,6 +114,7 @@ public partial class MainWindow : Window
         await vm.OpenArtistByIdFromUiAsync(artist.ArtistUserId);
     }
 
+    #pragma warning disable CS0618
     private void PlaylistDropTarget_OnDragOver(object? sender, DragEventArgs e)
     {
         if (TryGetSongId(e.Data, out _))
@@ -135,6 +177,7 @@ public partial class MainWindow : Window
 
         return int.TryParse(raw, out songId);
     }
+    #pragma warning restore CS0618
 
     private async void BrowseAvatar_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -167,6 +210,16 @@ public partial class MainWindow : Window
         var path = await PickSingleFilePathAsync("Выбор обложки трека", ImageFileTypes());
         if (!string.IsNullOrWhiteSpace(path))
             vm.AddTrackCoverPath = path;
+    }
+
+    private async void BrowsePlaylistCover_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        var path = await PickSingleFilePathAsync("Выбор обложки плейлиста", ImageFileTypes());
+        if (!string.IsNullOrWhiteSpace(path))
+            vm.NewPlaylistCoverPath = path;
     }
 
     private async void BrowseAudioFile_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -214,6 +267,32 @@ public partial class MainWindow : Window
 
         await vm.OpenTrackAlbumFromUiAsync(track);
         e.Handled = true;
+    }
+
+    private async void HomeCollectionCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control { DataContext: HomeMediaCollectionItemDto collection } control)
+            return;
+
+        var point = e.GetCurrentPoint(control);
+        if (point.Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+            return;
+
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        await vm.OpenHomeCollectionAsync(collection);
+    }
+
+    private async void AddCurrentTrackToPlaylistMenuItem_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is not Control { Tag: int playlistId })
+            return;
+
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        await vm.AddCurrentTrackToPlaylistAsync(playlistId);
     }
 
     private async Task<string?> PickSingleFilePathAsync(string title, IReadOnlyList<FilePickerFileType> filters)

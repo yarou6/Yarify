@@ -17,10 +17,45 @@ public partial class MainWindowViewModel
 {
     public async Task PlayTrackFromUiAsync(TrackListItemDto track)
     {
+        var uiContext = ResolvePlaybackContextForUiTrack(track);
+        if (!string.IsNullOrWhiteSpace(uiContext))
+            _playbackContextKey = uiContext;
+
         SelectedTrack = track;
         if (AlbumTracks.Contains(track))
             SelectedAlbumTrack = track;
         await PlayTrackAsync(track);
+    }
+
+    private string ResolvePlaybackContextForUiTrack(TrackListItemDto track)
+    {
+        if (IsAlbumSection && AlbumTracks.Any(t => t.Id == track.Id))
+            return "album";
+        if (IsPlaylistsSection && PlaylistTracks.Any(t => t.Id == track.Id))
+            return "playlist";
+        if (IsLikedSection && LikedTracks.Any(t => t.Id == track.Id))
+            return "liked";
+        if (IsArtistSection && ArtistTopTracks.Any(t => t.Id == track.Id))
+            return "artist";
+        if (IsSearchSection && SearchResultTracks.Any(t => t.Id == track.Id))
+            return "search";
+        if (IsTracksSection && Tracks.Any(t => t.Id == track.Id))
+            return "tracks";
+
+        if (PlaylistTracks.Any(t => t.Id == track.Id))
+            return "playlist";
+        if (LikedTracks.Any(t => t.Id == track.Id))
+            return "liked";
+        if (ArtistTopTracks.Any(t => t.Id == track.Id))
+            return "artist";
+        if (SearchResultTracks.Any(t => t.Id == track.Id))
+            return "search";
+        if (AlbumTracks.Any(t => t.Id == track.Id))
+            return "album";
+        if (Tracks.Any(t => t.Id == track.Id))
+            return "tracks";
+
+        return _playbackContextKey;
     }
 
     public async Task OpenAlbumByIdFromUiAsync(int albumId)
@@ -81,7 +116,8 @@ public partial class MainWindowViewModel
 
     private Task PlayFromQueueAsync(TrackListItemDto? track)
     {
-        _playbackContextKey = "queue";
+        if (track is not null)
+            _playbackContextKey = ResolvePlaybackContextForUiTrack(track);
         return PlayTrackAsync(track);
     }
 
@@ -95,6 +131,102 @@ public partial class MainWindowViewModel
     {
         _playbackContextKey = "artist";
         return PlayTrackAsync(track);
+    }
+
+    private TrackListItemDto? GetUpcomingTrackPreview()
+    {
+        var upcoming = BuildUpcomingQueueItems();
+        return upcoming.FirstOrDefault()?.Track ?? CurrentTrack;
+    }
+
+    private IReadOnlyList<QueueItemDto> BuildUpcomingQueueItems()
+    {
+        var result = new List<QueueItemDto>();
+        var seenTrackIds = new HashSet<int>();
+        var position = 1;
+
+        foreach (var queued in QueueItems.OrderBy(q => q.Position))
+        {
+            if (queued.Track is null)
+                continue;
+
+            if (!seenTrackIds.Add(queued.Track.Id))
+                continue;
+
+            result.Add(new QueueItemDto
+            {
+                QueueId = queued.QueueId,
+                Position = position++,
+                Track = queued.Track
+            });
+        }
+
+        var activeList = GetActivePlaybackList();
+        if (activeList.Count == 0)
+            return result;
+
+        if (IsShuffleEnabled)
+        {
+            foreach (var track in activeList.Where(t => CurrentTrack is null || t.Id != CurrentTrack.Id))
+            {
+                if (!seenTrackIds.Add(track.Id))
+                    continue;
+
+                result.Add(new QueueItemDto
+                {
+                    QueueId = 0,
+                    Position = position++,
+                    Track = track
+                });
+            }
+
+            return result;
+        }
+
+        var currentIndex = CurrentTrack is null ? -1 : IndexOfTrackById(activeList, CurrentTrack.Id);
+        var startIndex = currentIndex < 0 ? 0 : currentIndex + 1;
+
+        for (var i = startIndex; i < activeList.Count; i++)
+        {
+            var track = activeList[i];
+            if (!seenTrackIds.Add(track.Id))
+                continue;
+
+            result.Add(new QueueItemDto
+            {
+                QueueId = 0,
+                Position = position++,
+                Track = track
+            });
+        }
+
+        if (PlaybackMode == PlaybackMode.RepeatAll && currentIndex >= 0)
+        {
+            for (var i = 0; i <= currentIndex; i++)
+            {
+                var track = activeList[i];
+                if (!seenTrackIds.Add(track.Id))
+                    continue;
+
+                result.Add(new QueueItemDto
+                {
+                    QueueId = 0,
+                    Position = position++,
+                    Track = track
+                });
+            }
+        }
+
+        return result;
+    }
+
+    private void UpdateNowPlayingPreview()
+    {
+        OnPropertyChanged(nameof(NextTrackPreview));
+        OnPropertyChanged(nameof(NextTrackTitle));
+        OnPropertyChanged(nameof(NextTrackArtist));
+        OnPropertyChanged(nameof(NextTrackCoverImage));
+        OnPropertyChanged(nameof(UpcomingQueueItems));
     }
 
     private async Task HandleTrackEndedAsync()
@@ -234,6 +366,7 @@ public partial class MainWindowViewModel
             }
             RememberTrack(track);
             Status = $"Сейчас играет: {track.Title}";
+            UpdateNowPlayingPreview();
             UpdatePlayback();
             UpdateTime();
             await StartActiveListeningEventAsync(track);
@@ -261,6 +394,7 @@ public partial class MainWindowViewModel
             await PlayTrackAsync(q.Track);
             await _authSessionService.ApiClient.RemoveFromQueueAsync(q.QueueId);
             await LoadQueueAsync();
+            UpdateNowPlayingPreview();
             return;
         }
 
@@ -273,6 +407,7 @@ public partial class MainWindowViewModel
         {
             _audioPlayer.Stop();
             Status = "Конец списка треков.";
+            UpdateNowPlayingPreview();
             return;
         }
 
@@ -334,6 +469,7 @@ public partial class MainWindowViewModel
         if (idx < 0)
             idx = PlaybackMode == PlaybackMode.RepeatAll ? activeList.Count - 1 : 0;
         _ = PlayTrackAsync(activeList[idx]);
+        UpdateNowPlayingPreview();
     }
 
     private void ToggleRepeatMode() => PlaybackMode = PlaybackMode switch { PlaybackMode.Normal => PlaybackMode.RepeatAll, PlaybackMode.RepeatAll => PlaybackMode.RepeatOne, _ => PlaybackMode.Normal };

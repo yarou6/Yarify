@@ -71,6 +71,10 @@
             <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
         </Style>
 
+        <Style Selector="ListBox:focus, ListBox:focus-within, ListBox:focus-visible">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
         <Style Selector="ListBoxItem:selected">
             <Setter Property="Background" Value="#2A1820"/>
             <Setter Property="BorderBrush" Value="#703047"/>
@@ -156,6 +160,20 @@
         <Style Selector="CheckBox:checked:pointerover /template/ Border">
             <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}"/>
+        </Style>
+
+        <Style Selector="CheckBox.remember-me:checked /template/ Path">
+            <Setter Property="Stroke" Value="{StaticResource AccentBrush}"/>
+        </Style>
+
+        <Style Selector="CheckBox.remember-me:checked /template/ Border">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource TextMutedBrush}"/>
+        </Style>
+
+        <Style Selector="CheckBox.remember-me:checked:pointerover /template/ Border">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource TextMutedBrush}"/>
         </Style>
 
         <Style Selector="Button.nav">
