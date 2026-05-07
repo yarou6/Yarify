@@ -7,4 +7,5 @@ public sealed class AlbumListItemDto
     public string? CoverPath { get; set; }
     public DateOnly? ReleaseDate { get; set; }
     public int TracksCount { get; set; }
+    public int PlayCount { get; set; }
 }

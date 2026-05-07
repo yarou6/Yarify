@@ -143,7 +143,7 @@ public partial class MainWindowViewModel
         if (existing is not null)
             RecentTracks.Remove(existing);
         RecentTracks.Insert(0, track);
-        while (RecentTracks.Count > 12)
+        while (RecentTracks.Count > 8)
             RecentTracks.RemoveAt(RecentTracks.Count - 1);
     }
 

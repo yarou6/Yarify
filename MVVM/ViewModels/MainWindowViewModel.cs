@@ -1,5 +1,4 @@
-﻿
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -91,7 +90,7 @@ public partial class MainWindowViewModel : BaseVM
     private string _newPasswordInput = string.Empty;
     private string _confirmPasswordInput = string.Empty;
     private string _settingsLanguage = "Русский (Russian)";
-    private bool _isEmailVisible;
+    private bool _isContactsVisible;
 
     private bool _isSeekPreviewVisible;
     private double _seekPreviewSeconds;
@@ -112,6 +111,7 @@ public partial class MainWindowViewModel : BaseVM
     private DateTime _lastListeningProgressSentAt = DateTime.MinValue;
     private bool _isAdvancingTrack;
     private string _playbackContextKey = "tracks";
+    private int _currentArtistPlaysTotal;
 
     private bool _isShuffleEnabled;
     private bool _isQueuePanelOpen = true;
@@ -132,7 +132,8 @@ public partial class MainWindowViewModel : BaseVM
     private SubscriptionPlanDto? _studentPlan;
     private SubscriptionPlanDto? _premiumPlan;
 
-    public MainWindowViewModel(AuthSessionService authSessionService, AuthResponseDto authData, IAudioPlayerService audioPlayer, PlayerSettingsStore playerSettingsStore, Func<Task> onLogout)
+    public MainWindowViewModel(AuthSessionService authSessionService, AuthResponseDto authData,
+        IAudioPlayerService audioPlayer, PlayerSettingsStore playerSettingsStore, Func<Task> onLogout)
     {
         _authSessionService = authSessionService;
         _audioPlayer = audioPlayer;
@@ -151,6 +152,8 @@ public partial class MainWindowViewModel : BaseVM
         RecentTracks = new ObservableCollection<TrackListItemDto>();
         HomeLikedRecentTracks = new ObservableCollection<TrackListItemDto>();
         HomeRecentCollections = new ObservableCollection<HomeMediaCollectionItemDto>();
+        ForYouTracks = new ObservableCollection<TrackListItemDto>();
+        HomeRecommendedAlbums = new ObservableCollection<AlbumListItemDto>();
         SubscriptionPlans = new ObservableCollection<SubscriptionPlanDto>();
         SearchResultTracks = new ObservableCollection<TrackListItemDto>();
         SearchResultArtists = new ObservableCollection<ArtistSearchItemDto>();
@@ -176,32 +179,46 @@ public partial class MainWindowViewModel : BaseVM
         MoveQueueDownCommand = new AsyncRelayCommand(MoveSelectedQueueDownAsync, () => CanMoveQueueDown);
         ClearQueueCommand = new AsyncRelayCommand(ClearQueueAsync, () => QueueItems.Count > 0);
 
-        CreatePlaylistCommand = new AsyncRelayCommand(CreatePlaylistAsync, () => !string.IsNullOrWhiteSpace(NewPlaylistTitle));
-        SavePlaylistModalCommand = new AsyncRelayCommand(SavePlaylistModalAsync, () => !string.IsNullOrWhiteSpace(NewPlaylistTitle));
+        CreatePlaylistCommand =
+            new AsyncRelayCommand(CreatePlaylistAsync, () => !string.IsNullOrWhiteSpace(NewPlaylistTitle));
+        SavePlaylistModalCommand =
+            new AsyncRelayCommand(SavePlaylistModalAsync, () => !string.IsNullOrWhiteSpace(NewPlaylistTitle));
         OpenCreatePlaylistModalCommand = new RelayCommand(OpenCreatePlaylistModal);
         OpenEditPlaylistModalCommand = new RelayCommand(OpenEditPlaylistModal, () => SelectedPlaylist is not null);
         ClosePlaylistModalCommand = new RelayCommand(() => IsPlaylistModalOpen = false);
         DeletePlaylistCommand = new AsyncRelayCommand(DeleteSelectedPlaylistAsync, () => SelectedPlaylist is not null);
-        AddSelectedTrackToPlaylistCommand = new AsyncRelayCommand(AddSelectedTrackToPlaylistAsync, () => SelectedTrack is not null && SelectedPlaylist is not null);
-        RemovePlaylistTrackCommand = new AsyncRelayCommand(RemoveSelectedPlaylistTrackAsync, () => SelectedPlaylistTrack is not null && SelectedPlaylist is not null);
+        AddSelectedTrackToPlaylistCommand = new AsyncRelayCommand(AddSelectedTrackToPlaylistAsync,
+            () => SelectedTrack is not null && SelectedPlaylist is not null);
+        RemovePlaylistTrackCommand = new AsyncRelayCommand(RemoveSelectedPlaylistTrackAsync,
+            () => SelectedPlaylistTrack is not null && SelectedPlaylist is not null);
 
-        OpenSelectedArtistCommand = new AsyncRelayCommand(OpenSelectedArtistAsync, () => (SelectedTrack ?? CurrentTrack) is not null);
-        OpenAlbumArtistCommand = new AsyncRelayCommand(OpenAlbumArtistAsync, () => (SelectedAlbumTrack?.ArtistUserId ?? _currentArtistUserId) > 0);
+        OpenSelectedArtistCommand =
+            new AsyncRelayCommand(OpenSelectedArtistAsync, () => (SelectedTrack ?? CurrentTrack) is not null);
+        OpenAlbumArtistCommand = new AsyncRelayCommand(OpenAlbumArtistAsync,
+            () => (SelectedAlbumTrack?.ArtistUserId ?? _currentArtistUserId) > 0);
         ToggleArtistFollowCommand = new AsyncRelayCommand(ToggleArtistFollowAsync, () => _currentArtistUserId > 0);
         SetArtistReleaseAllCommand = new RelayCommand(() => SetArtistReleaseFilter("all"));
         SetArtistReleaseAlbumCommand = new RelayCommand(() => SetArtistReleaseFilter("album"));
         SetArtistReleaseSingleCommand = new RelayCommand(() => SetArtistReleaseFilter("single"));
         ShowAllArtistReleasesCommand = new RelayCommand(OpenArtistReleasesModal);
         CloseArtistReleasesModalCommand = new RelayCommand(() => IsArtistReleasesModalOpen = false);
-        OpenSelectedAlbumCommand = new AsyncRelayCommand(OpenSelectedAlbumAsync, () => (SelectedTrack?.AlbumId ?? CurrentTrack?.AlbumId) is not null);
-        OpenArtistAlbumCommand = new AsyncRelayCommand(OpenSelectedArtistAlbumAsync, () => SelectedArtistAlbum is not null);
+        OpenSelectedAlbumCommand = new AsyncRelayCommand(OpenSelectedAlbumAsync,
+            () => (SelectedTrack?.AlbumId ?? CurrentTrack?.AlbumId) is not null);
+        OpenArtistAlbumCommand =
+            new AsyncRelayCommand(OpenSelectedArtistAlbumAsync, () => SelectedArtistAlbum is not null);
 
-        PlaySelectedTrackCommand = new AsyncRelayCommand(async () => await PlayFromTracksAsync(SelectedTrack), () => SelectedTrack is not null);
-        PlayLikedTrackCommand = new AsyncRelayCommand(async () => await PlayFromLikedAsync(SelectedLikedTrack), () => SelectedLikedTrack is not null);
-        PlayQueueTrackCommand = new AsyncRelayCommand(async () => await PlayFromQueueAsync(SelectedQueueItem?.Track), () => SelectedQueueItem is not null);
-        PlayPlaylistTrackCommand = new AsyncRelayCommand(async () => await PlayFromPlaylistAsync(SelectedPlaylistTrack), () => SelectedPlaylistTrack is not null);
-        PlayArtistTrackCommand = new AsyncRelayCommand(async () => await PlayFromArtistAsync(SelectedArtistTrack), () => SelectedArtistTrack is not null);
-        PlayAlbumTrackCommand = new AsyncRelayCommand(PlayAlbumPrimaryAsync, () => SelectedAlbumTrack is not null || AlbumTracks.Count > 0);
+        PlaySelectedTrackCommand = new AsyncRelayCommand(async () => await PlayFromTracksAsync(SelectedTrack),
+            () => SelectedTrack is not null);
+        PlayLikedTrackCommand = new AsyncRelayCommand(async () => await PlayFromLikedAsync(SelectedLikedTrack),
+            () => SelectedLikedTrack is not null);
+        PlayQueueTrackCommand = new AsyncRelayCommand(async () => await PlayFromQueueAsync(SelectedQueueItem?.Track),
+            () => SelectedQueueItem is not null);
+        PlayPlaylistTrackCommand = new AsyncRelayCommand(async () => await PlayFromPlaylistAsync(SelectedPlaylistTrack),
+            () => SelectedPlaylistTrack is not null);
+        PlayArtistTrackCommand = new AsyncRelayCommand(async () => await PlayFromArtistAsync(SelectedArtistTrack),
+            () => SelectedArtistTrack is not null);
+        PlayAlbumTrackCommand = new AsyncRelayCommand(PlayAlbumPrimaryAsync,
+            () => SelectedAlbumTrack is not null || AlbumTracks.Count > 0);
 
         SetSectionTracksCommand = new RelayCommand(() =>
         {
@@ -239,15 +256,19 @@ public partial class MainWindowViewModel : BaseVM
         SaveContactsCommand = new AsyncRelayCommand(SaveContactsAsync, CanSaveContacts);
         CloseAddTrackModalCommand = new RelayCommand(CloseAddTrackModal);
         SubmitAddTrackCommand = new AsyncRelayCommand(SubmitAddTrackAsync, CanSubmitAddTrack);
-        AddCurrentTrackToLikedCommand = new AsyncRelayCommand(AddCurrentTrackToLikedAsync, () => CurrentTrack is not null);
-        AddCurrentTrackToPlaylistCommand = new AsyncRelayCommand(AddCurrentTrackToPlaylistAsync, () => CurrentTrack is not null);
+        AddCurrentTrackToLikedCommand =
+            new AsyncRelayCommand(AddCurrentTrackToLikedAsync, () => CurrentTrack is not null);
+        AddCurrentTrackToPlaylistCommand =
+            new AsyncRelayCommand(AddCurrentTrackToPlaylistAsync, () => CurrentTrack is not null);
         AddTrackCommand = new RelayCommand(AddTrackAction);
         ChangePasswordCommand = new AsyncRelayCommand(ChangePasswordAsync, CanChangePassword);
         SaveArtistNameCommand = new AsyncRelayCommand(SaveArtistNameAsync, CanSaveArtistName);
         SaveProfileChangesCommand = new AsyncRelayCommand(SaveProfileChangesAsync, CanSaveProfileChanges);
         SelectFreePlanCommand = new AsyncRelayCommand(() => SelectPlanAsync(FreePlan), () => CanSelectPlan(FreePlan));
-        SelectStudentPlanCommand = new AsyncRelayCommand(() => SelectPlanAsync(StudentPlan), () => CanSelectPlan(StudentPlan));
-        SelectPremiumPlanCommand = new AsyncRelayCommand(() => SelectPlanAsync(PremiumPlan), () => CanSelectPlan(PremiumPlan));
+        SelectStudentPlanCommand =
+            new AsyncRelayCommand(() => SelectPlanAsync(StudentPlan), () => CanSelectPlan(StudentPlan));
+        SelectPremiumPlanCommand =
+            new AsyncRelayCommand(() => SelectPlanAsync(PremiumPlan), () => CanSelectPlan(PremiumPlan));
 
         PlayPauseCommand = new RelayCommand(PlayPause, () => CurrentTrack is not null);
         NextTrackCommand = new RelayCommand(() => _ = PlayNextTrackAsync());
@@ -255,7 +276,7 @@ public partial class MainWindowViewModel : BaseVM
         MuteCommand = new RelayCommand(() => IsMuted = !IsMuted);
         ToggleShuffleCommand = new RelayCommand(() => IsShuffleEnabled = !IsShuffleEnabled);
         ToggleRepeatModeCommand = new RelayCommand(ToggleRepeatMode);
-        ToggleEmailVisibilityCommand = new RelayCommand(() => IsEmailVisible = !IsEmailVisible);
+        ToggleContactsVisibilityCommand = new RelayCommand(() => IsContactsVisible = !IsContactsVisible);
 
         _audioPlayer.PlaybackStateChanged += (_, _) => Dispatcher.UIThread.Post(UpdatePlayback);
         _audioPlayer.PositionChanged += (_, _) => Dispatcher.UIThread.Post(UpdateTime);
@@ -276,6 +297,8 @@ public partial class MainWindowViewModel : BaseVM
     public ObservableCollection<TrackListItemDto> RecentTracks { get; }
     public ObservableCollection<TrackListItemDto> HomeLikedRecentTracks { get; }
     public ObservableCollection<HomeMediaCollectionItemDto> HomeRecentCollections { get; }
+    public ObservableCollection<TrackListItemDto> ForYouTracks { get; }
+    public ObservableCollection<AlbumListItemDto> HomeRecommendedAlbums { get; }
     public ObservableCollection<string> GenreOptions { get; }
     public ObservableCollection<SubscriptionPlanDto> SubscriptionPlans { get; }
     public ObservableCollection<TrackListItemDto> SearchResultTracks { get; }
@@ -285,13 +308,48 @@ public partial class MainWindowViewModel : BaseVM
     public ObservableCollection<AddTrackGenreItemViewModel> AddTrackGenres { get; }
     public ObservableCollection<AddTrackGenreItemViewModel> FilteredAddTrackGenres { get; }
     public ObservableCollection<string> SearchTypeOptions { get; }
-    public TrackListItemDto? SelectedTrack { get => _selectedTrack; set => SetProperty(ref _selectedTrack, value, RaiseCanExecutes); }
-    public TrackListItemDto? SelectedLikedTrack { get => _selectedLikedTrack; set => SetProperty(ref _selectedLikedTrack, value, RaiseCanExecutes); }
-    public QueueItemDto? SelectedQueueItem { get => _selectedQueueItem; set => SetProperty(ref _selectedQueueItem, value, RaiseCanExecutes); }
-    public TrackListItemDto? SelectedPlaylistTrack { get => _selectedPlaylistTrack; set => SetProperty(ref _selectedPlaylistTrack, value, RaiseCanExecutes); }
-    public TrackListItemDto? SelectedArtistTrack { get => _selectedArtistTrack; set => SetProperty(ref _selectedArtistTrack, value, RaiseCanExecutes); }
-    public TrackListItemDto? SelectedAlbumTrack { get => _selectedAlbumTrack; set => SetProperty(ref _selectedAlbumTrack, value, RaiseCanExecutes); }
-    public AlbumListItemDto? SelectedArtistAlbum { get => _selectedArtistAlbum; set => SetProperty(ref _selectedArtistAlbum, value, RaiseCanExecutes); }
+
+    public TrackListItemDto? SelectedTrack
+    {
+        get => _selectedTrack;
+        set => SetProperty(ref _selectedTrack, value, RaiseCanExecutes);
+    }
+
+    public TrackListItemDto? SelectedLikedTrack
+    {
+        get => _selectedLikedTrack;
+        set => SetProperty(ref _selectedLikedTrack, value, RaiseCanExecutes);
+    }
+
+    public QueueItemDto? SelectedQueueItem
+    {
+        get => _selectedQueueItem;
+        set => SetProperty(ref _selectedQueueItem, value, RaiseCanExecutes);
+    }
+
+    public TrackListItemDto? SelectedPlaylistTrack
+    {
+        get => _selectedPlaylistTrack;
+        set => SetProperty(ref _selectedPlaylistTrack, value, RaiseCanExecutes);
+    }
+
+    public TrackListItemDto? SelectedArtistTrack
+    {
+        get => _selectedArtistTrack;
+        set => SetProperty(ref _selectedArtistTrack, value, RaiseCanExecutes);
+    }
+
+    public TrackListItemDto? SelectedAlbumTrack
+    {
+        get => _selectedAlbumTrack;
+        set => SetProperty(ref _selectedAlbumTrack, value, RaiseCanExecutes);
+    }
+
+    public AlbumListItemDto? SelectedArtistAlbum
+    {
+        get => _selectedArtistAlbum;
+        set => SetProperty(ref _selectedArtistAlbum, value, RaiseCanExecutes);
+    }
 
     public PlaylistListItemDto? SelectedPlaylist
     {
@@ -300,19 +358,41 @@ public partial class MainWindowViewModel : BaseVM
         {
             if (!SetProperty(ref _selectedPlaylist, value, RaiseCanExecutes))
                 return;
-            if (value is not null && ActiveSection != "playlists")
-                ActiveSection = "playlists";
             UpdatePlaylistHeaderFromSelection();
             _ = LoadPlaylistTracksAsync();
         }
     }
 
-    public TrackListItemDto? CurrentTrack { get => _currentTrack; private set => SetProperty(ref _currentTrack, value, RaiseCanExecutes); }
+    public PlaylistListItemDto? SidebarSelectedPlaylist
+    {
+        get => IsPlaylistsSection ? SelectedPlaylist : null;
+        set
+        {
+            if (value is null)
+                return;
+            SelectedPlaylist = value;
+            ActiveSection = "playlists";
+        }
+    }
+
+    public TrackListItemDto? CurrentTrack
+    {
+        get => _currentTrack;
+        private set
+        {
+            if (!SetProperty(ref _currentTrack, value, RaiseCanExecutes))
+                return;
+            OnPropertyChanged(nameof(AddCurrentTrackToLikedButtonText));
+            UpdatePlaylistTrackPresenceFlags();
+        }
+    }
+
     public SubscriptionPlanDto? SelectedSubscriptionPlan
     {
         get => _selectedSubscriptionPlan;
         set => SetProperty(ref _selectedSubscriptionPlan, value, RaiseCanExecutes);
     }
+
     public SubscriptionPlanDto? FreePlan
     {
         get => _freePlan;
@@ -321,10 +401,12 @@ public partial class MainWindowViewModel : BaseVM
             if (!SetProperty(ref _freePlan, value))
                 return;
             OnPropertyChanged(nameof(IsFreePlanSelected));
+            OnPropertyChanged(nameof(ShowFreePlanBillboard));
             OnPropertyChanged(nameof(FreePlanButtonText));
             RaiseCanExecutes();
         }
     }
+
     public SubscriptionPlanDto? StudentPlan
     {
         get => _studentPlan;
@@ -337,6 +419,7 @@ public partial class MainWindowViewModel : BaseVM
             RaiseCanExecutes();
         }
     }
+
     public SubscriptionPlanDto? PremiumPlan
     {
         get => _premiumPlan;
@@ -349,6 +432,7 @@ public partial class MainWindowViewModel : BaseVM
             RaiseCanExecutes();
         }
     }
+
     public string DisplayName
     {
         get => _displayName;
@@ -362,6 +446,7 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(LikedHeaderStats));
         }
     }
+
     public string RoleTitle
     {
         get => _roleTitle;
@@ -373,6 +458,7 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(IsArtistOrAdmin));
         }
     }
+
     public string? ArtistName
     {
         get => _artistName;
@@ -389,7 +475,13 @@ public partial class MainWindowViewModel : BaseVM
             RaiseCanExecutes();
         }
     }
-    public string ProfileLogin { get => _profileLogin; private set => SetProperty(ref _profileLogin, value); }
+
+    public string ProfileLogin
+    {
+        get => _profileLogin;
+        private set => SetProperty(ref _profileLogin, value);
+    }
+
     public string ProfileEmail
     {
         get => _profileEmail;
@@ -400,6 +492,7 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(SettingsEmailText));
         }
     }
+
     public string? ProfilePhone
     {
         get => _profilePhone;
@@ -410,7 +503,13 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(SettingsPhoneText));
         }
     }
-    public string Status { get => _status; set => SetProperty(ref _status, value); }
+
+    public string Status
+    {
+        get => _status;
+        set => SetProperty(ref _status, value);
+    }
+
     public string? UserAvatarSource
     {
         get => _userAvatarSource;
@@ -442,14 +541,29 @@ public partial class MainWindowViewModel : BaseVM
 
     public bool HasUserAvatar => UserAvatarBitmap is not null;
     public bool ShowAvatarPlaceholder => !HasUserAvatar;
-    public string UserInitial => string.IsNullOrWhiteSpace(DisplayName) ? "Y" : DisplayName.Trim()[0].ToString().ToUpperInvariant();
-    public bool IsArtistOrAdmin => RoleTitle.Equals("Artist", StringComparison.OrdinalIgnoreCase) || RoleTitle.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+
+    public string UserInitial => string.IsNullOrWhiteSpace(DisplayName)
+        ? "Y"
+        : DisplayName.Trim()[0].ToString().ToUpperInvariant();
+
+    public bool IsArtistOrAdmin => RoleTitle.Equals("Artist", StringComparison.OrdinalIgnoreCase) ||
+                                   RoleTitle.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+
     public bool HasArtistName => !string.IsNullOrWhiteSpace(ArtistName);
     public string ProfileArtistNameText => HasArtistName ? ArtistName! : "Имя артиста не задано";
 
-    public bool IsBusy { get => _isBusy; set => SetProperty(ref _isBusy, value, RaiseCanExecutes); }
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set => SetProperty(ref _isBusy, value, RaiseCanExecutes);
+    }
 
-    public string SearchText { get => _searchText; set => SetProperty(ref _searchText, value); }
+    public string SearchText
+    {
+        get => _searchText;
+        set => SetProperty(ref _searchText, value);
+    }
+
     public string SelectedGenre
     {
         get => _selectedGenre;
@@ -459,6 +573,7 @@ public partial class MainWindowViewModel : BaseVM
             if (!_isInitializing && !IsBusy) _ = LoadTracksAsync();
         }
     }
+
     public string SelectedSearchType
     {
         get => _selectedSearchType;
@@ -470,12 +585,43 @@ public partial class MainWindowViewModel : BaseVM
             NotifySearchType();
         }
     }
-    public string NewPlaylistTitle { get => _newPlaylistTitle; set => SetProperty(ref _newPlaylistTitle, value, RaiseCanExecutes); }
-    public string NewPlaylistDescription { get => _newPlaylistDescription; set => SetProperty(ref _newPlaylistDescription, value); }
-    public string NewPlaylistCoverPath { get => _newPlaylistCoverPath; set => SetProperty(ref _newPlaylistCoverPath, value); }
-    public bool NewPlaylistIsPublic { get => _newPlaylistIsPublic; set => SetProperty(ref _newPlaylistIsPublic, value); }
-    public bool IsPlaylistModalOpen { get => _isPlaylistModalOpen; set => SetProperty(ref _isPlaylistModalOpen, value); }
-    public bool IsPlaylistEditMode { get => _isPlaylistEditMode; set => SetProperty(ref _isPlaylistEditMode, value); }
+
+    public string NewPlaylistTitle
+    {
+        get => _newPlaylistTitle;
+        set => SetProperty(ref _newPlaylistTitle, value, RaiseCanExecutes);
+    }
+
+    public string NewPlaylistDescription
+    {
+        get => _newPlaylistDescription;
+        set => SetProperty(ref _newPlaylistDescription, value);
+    }
+
+    public string NewPlaylistCoverPath
+    {
+        get => _newPlaylistCoverPath;
+        set => SetProperty(ref _newPlaylistCoverPath, value);
+    }
+
+    public bool NewPlaylistIsPublic
+    {
+        get => _newPlaylistIsPublic;
+        set => SetProperty(ref _newPlaylistIsPublic, value);
+    }
+
+    public bool IsPlaylistModalOpen
+    {
+        get => _isPlaylistModalOpen;
+        set => SetProperty(ref _isPlaylistModalOpen, value);
+    }
+
+    public bool IsPlaylistEditMode
+    {
+        get => _isPlaylistEditMode;
+        set => SetProperty(ref _isPlaylistEditMode, value);
+    }
+
     public bool AllowExplicitContent
     {
         get => _allowExplicitContent;
@@ -484,8 +630,10 @@ public partial class MainWindowViewModel : BaseVM
             if (!SetProperty(ref _allowExplicitContent, value))
                 return;
             _ = SaveSettingsAsync();
+            _ = LoadTracksAsync();
         }
     }
+
     public int FollowingArtistsCount
     {
         get => _followingArtistsCount;
@@ -496,6 +644,7 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(ProfileStatsText));
         }
     }
+
     public UserSubscriptionDto? CurrentSubscription
     {
         get => _currentSubscription;
@@ -506,6 +655,7 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(CurrentSubscriptionTitle));
             OnPropertyChanged(nameof(CurrentSubscriptionAccent));
             OnPropertyChanged(nameof(IsFreePlanSelected));
+            OnPropertyChanged(nameof(ShowFreePlanBillboard));
             OnPropertyChanged(nameof(IsStudentPlanSelected));
             OnPropertyChanged(nameof(IsPremiumPlanSelected));
             OnPropertyChanged(nameof(FreePlanButtonText));
@@ -514,14 +664,55 @@ public partial class MainWindowViewModel : BaseVM
             RaiseCanExecutes();
         }
     }
-    public string SettingsArtistNameInput { get => _settingsArtistNameInput; set => SetProperty(ref _settingsArtistNameInput, value, RaiseCanExecutes); }
-    public string EditDisplayName { get => _editDisplayName; set => SetProperty(ref _editDisplayName, value, RaiseCanExecutes); }
-    public string EditAvatarPath { get => _editAvatarPath; set => SetProperty(ref _editAvatarPath, value, RaiseCanExecutes); }
-    public bool IsEditProfileModalOpen { get => _isEditProfileModalOpen; set => SetProperty(ref _isEditProfileModalOpen, value); }
-    public bool IsEditContactsModalOpen { get => _isEditContactsModalOpen; set => SetProperty(ref _isEditContactsModalOpen, value); }
-    public string EditEmailInput { get => _editEmailInput; set => SetProperty(ref _editEmailInput, value, RaiseCanExecutes); }
-    public string EditPhoneInput { get => _editPhoneInput; set => SetProperty(ref _editPhoneInput, value, RaiseCanExecutes); }
-    public bool IsAddTrackModalOpen { get => _isAddTrackModalOpen; set => SetProperty(ref _isAddTrackModalOpen, value); }
+
+    public string SettingsArtistNameInput
+    {
+        get => _settingsArtistNameInput;
+        set => SetProperty(ref _settingsArtistNameInput, value, RaiseCanExecutes);
+    }
+
+    public string EditDisplayName
+    {
+        get => _editDisplayName;
+        set => SetProperty(ref _editDisplayName, value, RaiseCanExecutes);
+    }
+
+    public string EditAvatarPath
+    {
+        get => _editAvatarPath;
+        set => SetProperty(ref _editAvatarPath, value, RaiseCanExecutes);
+    }
+
+    public bool IsEditProfileModalOpen
+    {
+        get => _isEditProfileModalOpen;
+        set => SetProperty(ref _isEditProfileModalOpen, value);
+    }
+
+    public bool IsEditContactsModalOpen
+    {
+        get => _isEditContactsModalOpen;
+        set => SetProperty(ref _isEditContactsModalOpen, value);
+    }
+
+    public string EditEmailInput
+    {
+        get => _editEmailInput;
+        set => SetProperty(ref _editEmailInput, value, RaiseCanExecutes);
+    }
+
+    public string EditPhoneInput
+    {
+        get => _editPhoneInput;
+        set => SetProperty(ref _editPhoneInput, value, RaiseCanExecutes);
+    }
+
+    public bool IsAddTrackModalOpen
+    {
+        get => _isAddTrackModalOpen;
+        set => SetProperty(ref _isAddTrackModalOpen, value);
+    }
+
     public bool IsAlbumTrackMode
     {
         get => _isAlbumTrackMode;
@@ -533,11 +724,33 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(AddTrackProgressText));
         }
     }
+
     public bool IsSingleTrackMode => !IsAlbumTrackMode;
-    public string AddTrackAlbumTitle { get => _addTrackAlbumTitle; set => SetProperty(ref _addTrackAlbumTitle, value, RaiseCanExecutes); }
-    public string AddTrackPlannedCountInput { get => _addTrackPlannedCountInput; set => SetProperty(ref _addTrackPlannedCountInput, value, RaiseCanExecutes); }
-    public string AddTrackTitleInput { get => _addTrackTitleInput; set => SetProperty(ref _addTrackTitleInput, value, RaiseCanExecutes); }
-    public string AddTrackDurationInput { get => _addTrackDurationInput; set => SetProperty(ref _addTrackDurationInput, value, RaiseCanExecutes); }
+
+    public string AddTrackAlbumTitle
+    {
+        get => _addTrackAlbumTitle;
+        set => SetProperty(ref _addTrackAlbumTitle, value, RaiseCanExecutes);
+    }
+
+    public string AddTrackPlannedCountInput
+    {
+        get => _addTrackPlannedCountInput;
+        set => SetProperty(ref _addTrackPlannedCountInput, value, RaiseCanExecutes);
+    }
+
+    public string AddTrackTitleInput
+    {
+        get => _addTrackTitleInput;
+        set => SetProperty(ref _addTrackTitleInput, value, RaiseCanExecutes);
+    }
+
+    public string AddTrackDurationInput
+    {
+        get => _addTrackDurationInput;
+        set => SetProperty(ref _addTrackDurationInput, value, RaiseCanExecutes);
+    }
+
     public string AddTrackGenreSearchInput
     {
         get => _addTrackGenreSearchInput;
@@ -548,6 +761,7 @@ public partial class MainWindowViewModel : BaseVM
             RefreshFilteredAddTrackGenres();
         }
     }
+
     public bool AddTrackIsOnlineSource
     {
         get => _addTrackIsOnlineSource;
@@ -561,8 +775,10 @@ public partial class MainWindowViewModel : BaseVM
                 TryApplyDurationFromLocalAudio(AddTrackLocalPath);
         }
     }
+
     public bool IsLocalTrackSource => !AddTrackIsOnlineSource;
     public bool IsOnlineTrackSource => AddTrackIsOnlineSource;
+
     public string AddTrackLocalPath
     {
         get => _addTrackLocalPath;
@@ -573,28 +789,71 @@ public partial class MainWindowViewModel : BaseVM
             TryApplyDurationFromLocalAudio(value);
         }
     }
-    public string AddTrackStreamUrl { get => _addTrackStreamUrl; set => SetProperty(ref _addTrackStreamUrl, value); }
-    public string AddTrackAlbumCoverPath { get => _addTrackAlbumCoverPath; set => SetProperty(ref _addTrackAlbumCoverPath, value); }
-    public string AddTrackCoverPath { get => _addTrackCoverPath; set => SetProperty(ref _addTrackCoverPath, value); }
-    public bool AddTrackExplicit { get => _addTrackExplicit; set => SetProperty(ref _addTrackExplicit, value); }
+
+    public string AddTrackStreamUrl
+    {
+        get => _addTrackStreamUrl;
+        set => SetProperty(ref _addTrackStreamUrl, value);
+    }
+
+    public string AddTrackAlbumCoverPath
+    {
+        get => _addTrackAlbumCoverPath;
+        set => SetProperty(ref _addTrackAlbumCoverPath, value);
+    }
+
+    public string AddTrackCoverPath
+    {
+        get => _addTrackCoverPath;
+        set => SetProperty(ref _addTrackCoverPath, value);
+    }
+
+    public bool AddTrackExplicit
+    {
+        get => _addTrackExplicit;
+        set => SetProperty(ref _addTrackExplicit, value);
+    }
+
     public string AddTrackProgressText => IsAlbumTrackMode
         ? (_albumTracksRemaining > 0
             ? $"Осталось добавить треков: {_albumTracksRemaining}"
             : "Режим альбома: укажи название и количество треков.")
         : "Режим сингла: можно добавлять треки по одному.";
-    public string CurrentPasswordInput { get => _currentPasswordInput; set => SetProperty(ref _currentPasswordInput, value, RaiseCanExecutes); }
-    public string NewPasswordInput { get => _newPasswordInput; set => SetProperty(ref _newPasswordInput, value, RaiseCanExecutes); }
-    public string ConfirmPasswordInput { get => _confirmPasswordInput; set => SetProperty(ref _confirmPasswordInput, value, RaiseCanExecutes); }
-    public string SettingsLanguage { get => _settingsLanguage; set => SetProperty(ref _settingsLanguage, value); }
-    public bool IsEmailVisible
+
+    public string CurrentPasswordInput
     {
-        get => _isEmailVisible;
+        get => _currentPasswordInput;
+        set => SetProperty(ref _currentPasswordInput, value, RaiseCanExecutes);
+    }
+
+    public string NewPasswordInput
+    {
+        get => _newPasswordInput;
+        set => SetProperty(ref _newPasswordInput, value, RaiseCanExecutes);
+    }
+
+    public string ConfirmPasswordInput
+    {
+        get => _confirmPasswordInput;
+        set => SetProperty(ref _confirmPasswordInput, value, RaiseCanExecutes);
+    }
+
+    public string SettingsLanguage
+    {
+        get => _settingsLanguage;
+        set => SetProperty(ref _settingsLanguage, value);
+    }
+
+    public bool IsContactsVisible
+    {
+        get => _isContactsVisible;
         set
         {
-            if (!SetProperty(ref _isEmailVisible, value))
+            if (!SetProperty(ref _isContactsVisible, value))
                 return;
             OnPropertyChanged(nameof(SettingsEmailText));
-            OnPropertyChanged(nameof(ToggleEmailText));
+            OnPropertyChanged(nameof(SettingsPhoneText));
+            OnPropertyChanged(nameof(ToggleContactsText));
         }
     }
 
@@ -605,12 +864,15 @@ public partial class MainWindowViewModel : BaseVM
         {
             if (!SetProperty(ref _isShuffleEnabled, value))
                 return;
+            if (value)
+                EnsureShuffleOrder();
 
             OnPropertyChanged(nameof(ShuffleLabel));
             OnPropertyChanged(nameof(IsRepeatOrShuffleActive));
             UpdateNowPlayingPreview();
         }
     }
+
     public PlaybackMode PlaybackMode
     {
         get => _playbackMode;
@@ -626,7 +888,13 @@ public partial class MainWindowViewModel : BaseVM
             UpdateNowPlayingPreview();
         }
     }
-    public bool IsQueuePanelOpen { get => _isQueuePanelOpen; set => SetProperty(ref _isQueuePanelOpen, value); }
+
+    public bool IsQueuePanelOpen
+    {
+        get => _isQueuePanelOpen;
+        set => SetProperty(ref _isQueuePanelOpen, value);
+    }
+
     public bool IsOverviewOpen
     {
         get => _isOverviewOpen;
@@ -637,14 +905,28 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(IsHomeFeedVisible));
         }
     }
+
     public bool IsHomeFeedVisible => !IsOverviewOpen;
     public string ShuffleLabel => IsShuffleEnabled ? "Shuffle On" : "Shuffle";
-    public string RepeatLabel => PlaybackMode switch { PlaybackMode.RepeatAll => "Repeat All", PlaybackMode.RepeatOne => "Repeat One", _ => "Repeat" };
+
+    public string RepeatLabel => PlaybackMode switch
+    {
+        PlaybackMode.RepeatAll => "Repeat All", PlaybackMode.RepeatOne => "Repeat One", _ => "Repeat"
+    };
+
     public bool IsRepeatEnabled => PlaybackMode != PlaybackMode.Normal;
     public bool IsRepeatOrShuffleActive => IsShuffleEnabled || IsRepeatEnabled;
     public string RepeatGlyph => PlaybackMode == PlaybackMode.RepeatOne ? "🔂" : "🔁";
 
-    public string ActiveSection { get => _activeSection; set { if (SetProperty(ref _activeSection, value)) NotifySections(); } }
+    public string ActiveSection
+    {
+        get => _activeSection;
+        set
+        {
+            if (SetProperty(ref _activeSection, value)) NotifySections();
+        }
+    }
+
     public bool IsTracksSection => ActiveSection == "tracks";
     public bool IsSearchSection => ActiveSection == "search";
     public bool IsPremiumSection => ActiveSection == "premium";
@@ -661,16 +943,57 @@ public partial class MainWindowViewModel : BaseVM
     public bool IsSearchAlbumsType => SelectedSearchType == "Альбомы";
     public bool IsSearchPlaylistsType => SelectedSearchType == "Плейлисты";
 
-    public string ArtistHeader { get => _artistHeader; set => SetProperty(ref _artistHeader, value); }
-    public string AlbumHeader { get => _albumHeader; set => SetProperty(ref _albumHeader, value); }
-    public string AlbumTitleText { get => _albumTitleText; private set => SetProperty(ref _albumTitleText, value); }
-    public string AlbumArtistNameText { get => _albumArtistNameText; private set => SetProperty(ref _albumArtistNameText, value); }
-    public string AlbumMetaText { get => _albumMetaText; private set => SetProperty(ref _albumMetaText, value); }
-    public string PlaylistTitleText { get => _playlistTitleText; private set => SetProperty(ref _playlistTitleText, value); }
-    public string PlaylistMetaText { get => _playlistMetaText; private set => SetProperty(ref _playlistMetaText, value); }
+    public string ArtistHeader
+    {
+        get => _artistHeader;
+        set => SetProperty(ref _artistHeader, value);
+    }
+
+    public string AlbumHeader
+    {
+        get => _albumHeader;
+        set => SetProperty(ref _albumHeader, value);
+    }
+
+    public string AlbumTitleText
+    {
+        get => _albumTitleText;
+        private set => SetProperty(ref _albumTitleText, value);
+    }
+
+    public string AlbumArtistNameText
+    {
+        get => _albumArtistNameText;
+        private set => SetProperty(ref _albumArtistNameText, value);
+    }
+
+    public string AlbumMetaText
+    {
+        get => _albumMetaText;
+        private set => SetProperty(ref _albumMetaText, value);
+    }
+
+    public string PlaylistTitleText
+    {
+        get => _playlistTitleText;
+        private set => SetProperty(ref _playlistTitleText, value);
+    }
+
+    public string PlaylistMetaText
+    {
+        get => _playlistMetaText;
+        private set => SetProperty(ref _playlistMetaText, value);
+    }
+
     public int AlbumTotalPlays => AlbumTracks.Sum(t => Math.Max(0, t.PlayCount));
     public string AlbumTotalPlaysText => $"{AlbumTotalPlays:N0} прослушиваний";
-    public string ArtistHeroCoverPath { get => _artistHeroCoverPath; set => SetProperty(ref _artistHeroCoverPath, value); }
+
+    public string ArtistHeroCoverPath
+    {
+        get => _artistHeroCoverPath;
+        set => SetProperty(ref _artistHeroCoverPath, value);
+    }
+
     public string ArtistAvatarPath
     {
         get => _artistAvatarPath;
@@ -681,6 +1004,7 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(ArtistAvatarImage));
         }
     }
+
     public Bitmap? ArtistAvatarBitmap
     {
         get => _artistAvatarBitmap;
@@ -695,11 +1019,27 @@ public partial class MainWindowViewModel : BaseVM
             OnPropertyChanged(nameof(ArtistAvatarImage));
         }
     }
-    public object? ArtistAvatarImage => (object?)ArtistAvatarBitmap ?? (string.IsNullOrWhiteSpace(ArtistAvatarPath) ? null : ArtistAvatarPath);
-    public string AlbumCoverPath { get => _albumCoverPath; set => SetProperty(ref _albumCoverPath, value); }
-    public object? AlbumCoverImage => (object?)_albumCoverBitmap ?? (string.IsNullOrWhiteSpace(AlbumCoverPath) ? null : AlbumCoverPath);
-    public string PlaylistCoverPath { get => _playlistCoverPath; private set => SetProperty(ref _playlistCoverPath, value); }
-    public object? PlaylistCoverImage => (object?)_playlistCoverBitmap ?? (string.IsNullOrWhiteSpace(PlaylistCoverPath) ? null : PlaylistCoverPath);
+
+    public object? ArtistAvatarImage => (object?)ArtistAvatarBitmap ??
+                                        (string.IsNullOrWhiteSpace(ArtistAvatarPath) ? null : ArtistAvatarPath);
+
+    public string AlbumCoverPath
+    {
+        get => _albumCoverPath;
+        set => SetProperty(ref _albumCoverPath, value);
+    }
+
+    public object? AlbumCoverImage => (object?)_albumCoverBitmap ??
+                                      (string.IsNullOrWhiteSpace(AlbumCoverPath) ? null : AlbumCoverPath);
+
+    public string PlaylistCoverPath
+    {
+        get => _playlistCoverPath;
+        private set => SetProperty(ref _playlistCoverPath, value);
+    }
+
+    public object? PlaylistCoverImage => (object?)_playlistCoverBitmap ??
+                                         (string.IsNullOrWhiteSpace(PlaylistCoverPath) ? null : PlaylistCoverPath);
 
     public int VolumePercent
     {
@@ -728,8 +1068,23 @@ public partial class MainWindowViewModel : BaseVM
     }
 
     public string VolumeLabel => IsMuted ? "Mute" : $"{VolumePercent}%";
-    public double PositionSeconds { get => _positionSeconds; set { if (SetProperty(ref _positionSeconds, value) && !_isSeeking) _audioPlayer.Seek(TimeSpan.FromSeconds(Math.Max(0, value))); } }
-    public double DurationSeconds { get => _durationSeconds; set => SetProperty(ref _durationSeconds, value); }
+
+    public double PositionSeconds
+    {
+        get => _positionSeconds;
+        set
+        {
+            if (SetProperty(ref _positionSeconds, value) && !_isSeeking)
+                _audioPlayer.Seek(TimeSpan.FromSeconds(Math.Max(0, value)));
+        }
+    }
+
+    public double DurationSeconds
+    {
+        get => _durationSeconds;
+        set => SetProperty(ref _durationSeconds, value);
+    }
+
     public string PositionText => TimeSpan.FromSeconds(Math.Max(PositionSeconds, 0)).ToString(@"mm\:ss");
     public string DurationText => TimeSpan.FromSeconds(Math.Max(DurationSeconds, 0)).ToString(@"mm\:ss");
     public string SeekPreviewText => TimeSpan.FromSeconds(Math.Max(_seekPreviewSeconds, 0)).ToString(@"mm\:ss");
@@ -744,15 +1099,32 @@ public partial class MainWindowViewModel : BaseVM
     public IReadOnlyList<QueueItemDto> UpcomingQueueItems => BuildUpcomingQueueItems();
     public bool IsPlaybackActive => _audioPlayer.IsPlaying;
     public bool IsPlaybackInactive => !_audioPlayer.IsPlaying;
-    public string CurrentArtistMonthlyListenersText => $"{Math.Max(0, (SelectedArtistTrack ?? CurrentTrack ?? SelectedTrack)?.PlayCount ?? _artistMonthlyStreams):N0} прослушиваний";
+
+    public string CurrentArtistMonthlyListenersText =>
+        $"{Math.Max(0, (SelectedArtistTrack ?? CurrentTrack ?? SelectedTrack)?.PlayCount ?? _artistMonthlyStreams):N0} прослушиваний";
+
     public string ArtistMonthlyStreamsText => $"{Math.Max(0, _artistMonthlyStreams):N0} прослушиваний";
+    public string CurrentArtistTotalStreamsText => $"{Math.Max(0, _currentArtistPlaysTotal):N0} прослушиваний";
     public string ArtistFollowersText => $"{Math.Max(0, _artistFollowersCount):N0} подписчиков";
     public string ArtistFollowButtonText => _isFollowingArtist ? "Отписаться" : "Подписаться";
-    public bool IsArtistReleaseAllFilter => string.Equals(_artistReleaseFilter, "all", StringComparison.OrdinalIgnoreCase);
-    public bool IsArtistReleaseAlbumFilter => string.Equals(_artistReleaseFilter, "album", StringComparison.OrdinalIgnoreCase);
-    public bool IsArtistReleaseSingleFilter => string.Equals(_artistReleaseFilter, "single", StringComparison.OrdinalIgnoreCase);
-    public bool IsArtistReleasesModalOpen { get => _isArtistReleasesModalOpen; set => SetProperty(ref _isArtistReleasesModalOpen, value); }
+
+    public bool IsArtistReleaseAllFilter =>
+        string.Equals(_artistReleaseFilter, "all", StringComparison.OrdinalIgnoreCase);
+
+    public bool IsArtistReleaseAlbumFilter =>
+        string.Equals(_artistReleaseFilter, "album", StringComparison.OrdinalIgnoreCase);
+
+    public bool IsArtistReleaseSingleFilter =>
+        string.Equals(_artistReleaseFilter, "single", StringComparison.OrdinalIgnoreCase);
+
+    public bool IsArtistReleasesModalOpen
+    {
+        get => _isArtistReleasesModalOpen;
+        set => SetProperty(ref _isArtistReleasesModalOpen, value);
+    }
+
     public bool CanShowAllArtistReleases => FilteredArtistReleases.Count > 5;
+
     public IReadOnlyList<ArtistReleaseItemDto> FilteredArtistReleases
     {
         get
@@ -766,21 +1138,28 @@ public partial class MainWindowViewModel : BaseVM
             return query.ToList();
         }
     }
+
     public IReadOnlyList<ArtistReleaseItemDto> VisibleArtistReleases => FilteredArtistReleases.Take(5).ToList();
     public int PublicPlaylistsCount => Playlists.Count(p => p.IsPublic);
     public int LikedTracksCount => LikedTracks.Count;
     public string LikedOwnerName => string.IsNullOrWhiteSpace(ArtistName) ? DisplayName : ArtistName!;
     public string LikedHeaderStats => $"{LikedOwnerName} • {LikedTracksCount} треков";
     public string CurrentSubscriptionTitle => CurrentSubscription?.PlanTitle ?? "Free";
+
     public string CurrentSubscriptionAccent => ContainsToken(CurrentSubscriptionTitle, "student", "студ")
         ? "#D3C0F5"
         : ContainsToken(CurrentSubscriptionTitle, "premium", "прем")
             ? "#F7C45E"
             : "#F4C8D5";
+
     public string ProfileStatsText => $"{PublicPlaylistsCount} открытых плейлистов • {FollowingArtistsCount} подписки";
-    public string SettingsEmailText => string.IsNullOrWhiteSpace(ProfileEmail) ? "-" : (IsEmailVisible ? ProfileEmail : "***");
-    public string SettingsPhoneText => string.IsNullOrWhiteSpace(ProfilePhone) ? "-" : ProfilePhone;
-    public string ToggleEmailText => IsEmailVisible ? "Скрыть" : "Показать";
+
+    public string SettingsEmailText =>
+        string.IsNullOrWhiteSpace(ProfileEmail) ? "-" : (IsContactsVisible ? ProfileEmail : "************");
+
+    public string SettingsPhoneText => string.IsNullOrWhiteSpace(ProfilePhone) ? "-" : (IsContactsVisible ? ProfilePhone : "************");
+    public string ToggleContactsText => IsContactsVisible ? "Скрыть" : "Показать";
+    public bool ShowFreePlanBillboard => IsFreePlanSelected;
     public bool IsFreePlanSelected => FreePlan is not null && CurrentSubscription?.PlanId == FreePlan.Id;
     public bool IsStudentPlanSelected => StudentPlan is not null && CurrentSubscription?.PlanId == StudentPlan.Id;
     public bool IsPremiumPlanSelected => PremiumPlan is not null && CurrentSubscription?.PlanId == PremiumPlan.Id;
@@ -790,9 +1169,19 @@ public partial class MainWindowViewModel : BaseVM
     public string PlaylistModalHeader => IsPlaylistEditMode ? "Редактировать плейлист" : "Создать плейлист";
     public string PlaylistSubmitText => IsPlaylistEditMode ? "Сохранить" : "Создать";
     public string FoundTracksText => $"Найдено: {Tracks.Count}";
-    public string LikeButtonText => SelectedTrack is not null && _likedSongIds.Contains(SelectedTrack.Id) ? "Убрать лайк" : "Лайк";
-    public bool CanMoveQueueUp => SelectedQueueItem is not null && QueueItems.Count > 1 && SelectedQueueItem.Position > 1;
-    public bool CanMoveQueueDown => SelectedQueueItem is not null && QueueItems.Count > 1 && SelectedQueueItem.Position < QueueItems.Count;
+
+    public string LikeButtonText =>
+        SelectedTrack is not null && _likedSongIds.Contains(SelectedTrack.Id) ? "Убрать лайк" : "Лайк";
+    public string AddCurrentTrackToLikedButtonText =>
+        CurrentTrack is not null && _likedSongIds.Contains(CurrentTrack.Id)
+            ? "Убрать из любимых"
+            : "Добавить в любимые";
+
+    public bool CanMoveQueueUp =>
+        SelectedQueueItem is not null && QueueItems.Count > 1 && SelectedQueueItem.Position > 1;
+
+    public bool CanMoveQueueDown => SelectedQueueItem is not null && QueueItems.Count > 1 &&
+                                    SelectedQueueItem.Position < QueueItems.Count;
 
     public AsyncRelayCommand RefreshTracksCommand { get; }
     public AsyncRelayCommand SearchTracksCommand { get; }
@@ -850,7 +1239,7 @@ public partial class MainWindowViewModel : BaseVM
     public RelayCommand MuteCommand { get; }
     public RelayCommand ToggleShuffleCommand { get; }
     public RelayCommand ToggleRepeatModeCommand { get; }
-    public RelayCommand ToggleEmailVisibilityCommand { get; }
+    public RelayCommand ToggleContactsVisibilityCommand { get; }
     public RelayCommand AddTrackCommand { get; }
     public AsyncRelayCommand AddCurrentTrackToLikedCommand { get; }
     public AsyncRelayCommand AddCurrentTrackToPlaylistCommand { get; }
@@ -863,4 +1252,3 @@ public partial class MainWindowViewModel : BaseVM
     public AsyncRelayCommand SelectStudentPlanCommand { get; }
     public AsyncRelayCommand SelectPremiumPlanCommand { get; }
 }
-

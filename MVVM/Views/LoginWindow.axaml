@@ -54,7 +54,7 @@
             <TextBlock Text="Вход" FontSize="26" FontWeight="Bold" Margin="0,0,0,4" HorizontalAlignment="Center"/>
 
             <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Логин"/>
-            <TextBox Text="{Binding Login}" Watermark="your_login"/>
+            <TextBox Text="{Binding Login}" Watermark="your login"/>
 
             <TextBlock Foreground="{StaticResource TextMutedBrush}" Text="Пароль"/>
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="********"/>

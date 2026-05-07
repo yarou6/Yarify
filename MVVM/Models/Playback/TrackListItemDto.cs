@@ -17,6 +17,8 @@ public sealed class TrackListItemDto
     public string? AlbumTitle { get; set; }
     public int? TrackOrder { get; set; }
     public int PlayCount { get; set; }
+    public bool Explicit { get; set; }
+    public IReadOnlyList<string> GenreTitles { get; set; } = Array.Empty<string>();
 
     public string DurationText => TimeSpan.FromSeconds(Math.Max(DurationSec, 0)).ToString(@"mm\:ss");
     public string PlaysText => $"{Math.Max(0, PlayCount):N0}";
@@ -29,4 +31,7 @@ public sealed class TrackListItemDto
         : AlbumId.HasValue
             ? "Из альбома"
             : "Сингл";
+    public string ReleaseAndSourceText => !string.IsNullOrWhiteSpace(AlbumTitle)
+        ? $"Релиз: {AlbumTitle}"
+        : "Релиз: сингл";
 }

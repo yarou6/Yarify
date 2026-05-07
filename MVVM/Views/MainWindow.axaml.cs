@@ -8,6 +8,7 @@ namespace MVVM.Views;
 
 public partial class MainWindow : Window
 {
+    private ContextMenu? _activeTrackContextMenu;
     public MainWindow()
     {
         InitializeComponent();
@@ -37,36 +38,32 @@ public partial class MainWindow : Window
 
     private void ShowTrackContextMenu(Control anchor, TrackListItemDto track, MainWindowViewModel vm)
     {
-        var addNext = new MenuItem { Header = "Добавить в очередь (следующим)" };
+        _activeTrackContextMenu?.Close();
+
+        var addNext = new MenuItem { Header = "▶ Добавить в очередь (следующим)" };
         addNext.Click += async (_, _) => await vm.AddTrackToQueueNextAsync(track);
-
-        var addToPlaylist = new MenuItem { Header = "Добавить в плейлист" };
-        var playlistMenuItems = new List<MenuItem>();
-        foreach (var playlist in vm.Playlists)
+        var menuItems = new List<object> { addNext };
+        if (vm.IsPlaylistsSection && vm.IsTrackInSelectedPlaylist(track.Id) && vm.SelectedPlaylist is not null)
         {
-            var playlistItem = new MenuItem { Header = playlist.Title };
-            var playlistId = playlist.Id;
-            playlistItem.Click += async (_, _) => await vm.AddTrackToPlaylistByIdsAsync(track.Id, playlistId);
-            playlistMenuItems.Add(playlistItem);
+            var removeFromPlaylist = new MenuItem { Header = $"✕ Убрать из плейлиста: {vm.SelectedPlaylist.Title}" };
+            removeFromPlaylist.Click += async (_, _) => await vm.RemoveTrackFromSelectedPlaylistByIdAsync(track.Id);
+            menuItems.Add(removeFromPlaylist);
         }
 
-        if (vm.Playlists.Count == 0)
+        if (vm.IsLikedSection && vm.IsTrackLiked(track.Id))
         {
-            playlistMenuItems.Add(new MenuItem
-            {
-                Header = "Нет доступных плейлистов",
-                IsEnabled = false
-            });
+            var removeFromLiked = new MenuItem { Header = "✕ Убрать из любимых" };
+            removeFromLiked.Click += async (_, _) => await vm.RemoveTrackFromLikedByIdAsync(track.Id);
+            menuItems.Add(removeFromLiked);
         }
-        addToPlaylist.ItemsSource = playlistMenuItems;
 
-        var contextMenu = new ContextMenu
+        _activeTrackContextMenu = new ContextMenu
         {
-            ItemsSource = new object[] { addNext, addToPlaylist },
+            ItemsSource = menuItems,
             PlacementTarget = anchor
         };
 
-        contextMenu.Open(anchor);
+        _activeTrackContextMenu.Open(anchor);
     }
 
     private async void AlbumCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -293,6 +290,33 @@ public partial class MainWindow : Window
             return;
 
         await vm.AddCurrentTrackToPlaylistAsync(playlistId);
+    }
+
+    private void PlaylistItem_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        var point = e.GetCurrentPoint(sender as Control ?? this);
+        if (point.Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+            return;
+
+        vm.ActiveSection = "playlists";
+    }
+
+    private async void OverviewGenreCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control { DataContext: string genre } control)
+            return;
+
+        var point = e.GetCurrentPoint(control);
+        if (point.Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+            return;
+
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        await vm.OpenOverviewGenreAsync(genre);
     }
 
     private async Task<string?> PickSingleFilePathAsync(string title, IReadOnlyList<FilePickerFileType> filters)

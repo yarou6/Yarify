@@ -13,4 +13,6 @@ public sealed class TrackListItemDto
     public int ArtistUserId { get; set; }
     public int? AlbumId { get; set; }
     public string? AlbumTitle { get; set; }
+    public bool Explicit { get; set; }
+    public IReadOnlyList<string> GenreTitles { get; set; } = Array.Empty<string>();
 }

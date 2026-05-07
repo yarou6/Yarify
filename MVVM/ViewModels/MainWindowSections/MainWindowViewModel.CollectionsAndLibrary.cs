@@ -23,7 +23,14 @@ public partial class MainWindowViewModel
 
         LikedTracks.Clear();
         _likedSongIds.Clear();
-        foreach (var item in items) { LikedTracks.Add(item); _likedSongIds.Add(item.Id); }
+        var likedOrder = 1;
+        foreach (var item in items)
+        {
+            item.TrackOrder = likedOrder++;
+            LikedTracks.Add(item);
+            _likedSongIds.Add(item.Id);
+        }
+
         SelectedLikedTrack = LikedTracks.FirstOrDefault();
         OnPropertyChanged(nameof(LikedTracksCount));
         OnPropertyChanged(nameof(LikedOwnerName));
@@ -32,6 +39,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(CanMoveQueueUp));
         OnPropertyChanged(nameof(CanMoveQueueDown));
         await LoadHomeLibraryHighlightsAsync();
+        await BuildPersonalRecommendationsAsync();
     }
 
     private async Task LoadQueueAsync()
@@ -90,17 +98,28 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(PublicPlaylistsCount));
         OnPropertyChanged(nameof(ProfileStatsText));
         await LoadHomeLibraryHighlightsAsync();
+        UpdatePlaylistTrackPresenceFlags();
+        await BuildPersonalRecommendationsAsync();
     }
 
     private async Task LoadPlaylistTracksAsync()
     {
-        PlaylistTracks.Clear();
-        if (SelectedPlaylist is null) return;
+        var selectedPlaylist = SelectedPlaylist;
+        if (selectedPlaylist is null)
+        {
+            PlaylistTracks.Clear();
+            return;
+        }
 
-        var (items, error) = await _authSessionService.ApiClient.GetPlaylistTracksAsync(SelectedPlaylist.Id);
+        var selectedPlaylistId = selectedPlaylist.Id;
+        var (items, error) = await _authSessionService.ApiClient.GetPlaylistTracksAsync(selectedPlaylistId);
         if (!string.IsNullOrWhiteSpace(error)) { Status = $"Ошибка треков плейлиста: {error}"; return; }
         await HydrateAlbumTitlesAsync(items);
 
+        if (SelectedPlaylist is null || SelectedPlaylist.Id != selectedPlaylistId)
+            return;
+
+        PlaylistTracks.Clear();
         var order = 1;
         foreach (var item in items)
         {
@@ -110,6 +129,7 @@ public partial class MainWindowViewModel
         SelectedPlaylistTrack = PlaylistTracks.FirstOrDefault();
 
         UpdatePlaylistHeaderFromSelection();
+        UpdatePlaylistTrackPresenceFlags();
     }
 
     private async Task HydrateAlbumTitlesAsync(IEnumerable<TrackListItemDto> tracks)
@@ -331,14 +351,18 @@ public partial class MainWindowViewModel
         await AddTrackToPlaylistByIdsAsync(CurrentTrack.Id, playlistId);
         SelectedPlaylist = playlist;
         Status = $"Трек \"{CurrentTrack.Title}\" добавлен в \"{playlist.Title}\".";
+        UpdatePlaylistTrackPresenceFlags();
     }
 
     private async Task DeleteSelectedPlaylistAsync()
     {
         if (SelectedPlaylist is null) return;
-        var error = await _authSessionService.ApiClient.DeletePlaylistAsync(SelectedPlaylist.Id);
+        var deletedPlaylistId = SelectedPlaylist.Id;
+        var error = await _authSessionService.ApiClient.DeletePlaylistAsync(deletedPlaylistId);
         if (!string.IsNullOrWhiteSpace(error)) { Status = $"Ошибка удаления плейлиста: {error}"; return; }
         await LoadPlaylistsAsync();
+        RemoveDeletedPlaylistFromHomeCollections(deletedPlaylistId);
+        await LoadHomeLibraryHighlightsAsync();
         _isInitializing = false;
     }
 
@@ -361,6 +385,7 @@ public partial class MainWindowViewModel
             : await _authSessionService.ApiClient.LikeTrackAsync(CurrentTrack.Id);
         if (!string.IsNullOrWhiteSpace(error)) { Status = $"Ошибка лайка: {error}"; return; }
         await LoadLikedAsync();
+        UpdatePlaylistTrackPresenceFlags();
     }
 
     private async Task AddCurrentTrackToPlaylistAsync()
@@ -385,6 +410,42 @@ public partial class MainWindowViewModel
         if (!string.IsNullOrWhiteSpace(error)) { Status = $"Ошибка удаления из плейлиста: {error}"; return; }
         await LoadPlaylistsAsync();
         await LoadPlaylistTracksAsync();
+    }
+
+    public bool IsTrackLiked(int trackId) => _likedSongIds.Contains(trackId);
+
+    public bool IsTrackInSelectedPlaylist(int trackId) => PlaylistTracks.Any(t => t.Id == trackId);
+
+    public async Task RemoveTrackFromSelectedPlaylistByIdAsync(int trackId)
+    {
+        if (SelectedPlaylist is null)
+            return;
+
+        var error = await _authSessionService.ApiClient.RemoveTrackFromPlaylistAsync(SelectedPlaylist.Id, trackId);
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            Status = $"Ошибка удаления из плейлиста: {error}";
+            return;
+        }
+
+        await LoadPlaylistTracksAsync();
+        Status = $"Трек удален из плейлиста \"{SelectedPlaylist.Title}\".";
+    }
+
+    public async Task RemoveTrackFromLikedByIdAsync(int trackId)
+    {
+        if (trackId <= 0)
+            return;
+
+        var error = await _authSessionService.ApiClient.UnlikeTrackAsync(trackId);
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            Status = $"Ошибка удаления из любимых: {error}";
+            return;
+        }
+
+        await LoadLikedAsync();
+        Status = "Трек удален из любимых.";
     }
 
     private async Task OpenSelectedArtistAsync()
@@ -536,6 +597,79 @@ public partial class MainWindowViewModel
             HomeRecentCollections.Add(collection);
     }
 
+    private async Task BuildPersonalRecommendationsAsync()
+    {
+        var (allTracksRaw, allTracksError) = await _authSessionService.ApiClient.GetTracksAsync(null, null, "plays");
+        var allTracks = string.IsNullOrWhiteSpace(allTracksError) ? allTracksRaw.ToList() : Tracks.ToList();
+
+        var playlistTrackIds = new HashSet<int>();
+        foreach (var playlist in Playlists)
+        {
+            var (tracks, error) = await _authSessionService.ApiClient.GetPlaylistTracksAsync(playlist.Id);
+            if (!string.IsNullOrWhiteSpace(error))
+                continue;
+
+            foreach (var track in tracks)
+                playlistTrackIds.Add(track.Id);
+        }
+
+        var likedGenres = LikedTracks
+            .SelectMany(t => t.GenreTitles ?? Array.Empty<string>())
+            .Where(g => !string.IsNullOrWhiteSpace(g))
+            .GroupBy(g => g, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new { Genre = g.Key, Score = g.Count() })
+            .ToDictionary(x => x.Genre, x => x.Score, StringComparer.OrdinalIgnoreCase);
+
+        var candidates = allTracks
+            .Where(t => !_likedSongIds.Contains(t.Id))
+            .Where(t => !playlistTrackIds.Contains(t.Id))
+            .Where(CanShowTrackForCurrentSettings)
+            .Select(t => new
+            {
+                Track = t,
+                Score = (t.GenreTitles ?? Array.Empty<string>())
+                    .Where(g => likedGenres.ContainsKey(g))
+                    .Sum(g => likedGenres[g])
+            })
+            .Where(x => x.Score > 0)
+            .OrderByDescending(x => x.Score)
+            .ThenByDescending(x => x.Track.PlayCount)
+            .Take(8)
+            .Select(x => x.Track)
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            var likedArtistIds = LikedTracks.Select(t => t.ArtistUserId).Where(id => id > 0).Distinct().ToHashSet();
+            candidates = allTracks
+                .Where(t => !_likedSongIds.Contains(t.Id))
+                .Where(t => !playlistTrackIds.Contains(t.Id))
+                .Where(CanShowTrackForCurrentSettings)
+                .Where(t => likedArtistIds.Contains(t.ArtistUserId))
+                .OrderByDescending(t => t.PlayCount)
+                .Take(8)
+                .ToList();
+        }
+
+        ForYouTracks.Clear();
+        foreach (var track in candidates)
+            ForYouTracks.Add(track);
+
+        var recommendedAlbumIds = new HashSet<int>(candidates.Where(t => t.AlbumId.HasValue).Select(t => t.AlbumId!.Value));
+        var likedAlbumIds = new HashSet<int>(LikedTracks.Where(t => t.AlbumId.HasValue).Select(t => t.AlbumId!.Value));
+
+        var albums = SearchResultAlbums
+            .Where(a => recommendedAlbumIds.Contains(a.Id))
+            .Where(a => !likedAlbumIds.Contains(a.Id))
+            .OrderByDescending(a => a.PlayCount)
+            .Take(6)
+            .ToList();
+
+        HomeRecommendedAlbums.Clear();
+        foreach (var album in albums)
+            HomeRecommendedAlbums.Add(album);
+    }
+
     private HomeMediaCollectionItemDto? TryBuildHomeCollectionFromHistory(ListeningHistoryItemDto item)
     {
         if (item.SourceId is null or <= 0)
@@ -544,14 +678,16 @@ public partial class MainWindowViewModel
         if (string.Equals(item.SourceType, "Playlist", StringComparison.OrdinalIgnoreCase))
         {
             var playlist = Playlists.FirstOrDefault(p => p.Id == item.SourceId.Value);
+            if (playlist is null)
+                return null;
             return new HomeMediaCollectionItemDto
             {
                 Kind = "playlist",
                 Id = item.SourceId.Value,
-                Title = playlist?.Title ?? $"Плейлист #{item.SourceId.Value}",
-                Subtitle = playlist?.Subtitle ?? "Плейлист",
-                CoverPath = playlist?.CoverPath ?? item.Track?.CoverPath,
-                CoverBitmap = playlist?.CoverBitmap ?? item.Track?.CoverBitmap
+                Title = playlist.Title,
+                Subtitle = playlist.Subtitle,
+                CoverPath = playlist.CoverPath ?? item.Track?.CoverPath,
+                CoverBitmap = playlist.CoverBitmap ?? item.Track?.CoverBitmap
             };
         }
 
@@ -591,6 +727,37 @@ public partial class MainWindowViewModel
 
         await OpenAlbumByIdAsync(collection.Id);
     }
+
+    private void UpdatePlaylistTrackPresenceFlags()
+    {
+        var currentTrackId = CurrentTrack?.Id;
+        foreach (var playlist in Playlists)
+            playlist.ContainsCurrentTrack = false;
+
+        if (currentTrackId is null || SelectedPlaylist is null)
+            return;
+
+        if (PlaylistTracks.Any(t => t.Id == currentTrackId.Value))
+        {
+            var selected = Playlists.FirstOrDefault(p => p.Id == SelectedPlaylist.Id);
+            if (selected is not null)
+                selected.ContainsCurrentTrack = true;
+        }
+    }
+
+    private void RemoveDeletedPlaylistFromHomeCollections(int playlistId)
+    {
+        if (playlistId <= 0)
+            return;
+
+        var stale = HomeRecentCollections
+            .Where(c => string.Equals(c.Kind, "playlist", StringComparison.OrdinalIgnoreCase) && c.Id == playlistId)
+            .ToList();
+
+        foreach (var item in stale)
+            HomeRecentCollections.Remove(item);
+    }
+
 }
 
 

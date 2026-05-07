@@ -135,12 +135,17 @@ public partial class MainWindowViewModel
 
     private TrackListItemDto? GetUpcomingTrackPreview()
     {
+        if (PlaybackMode == PlaybackMode.RepeatOne)
+            return CurrentTrack;
         var upcoming = BuildUpcomingQueueItems();
         return upcoming.FirstOrDefault()?.Track ?? CurrentTrack;
     }
 
     private IReadOnlyList<QueueItemDto> BuildUpcomingQueueItems()
     {
+        if (PlaybackMode == PlaybackMode.RepeatOne)
+            return Array.Empty<QueueItemDto>();
+
         var result = new List<QueueItemDto>();
         var seenTrackIds = new HashSet<int>();
         var position = 1;
@@ -167,7 +172,12 @@ public partial class MainWindowViewModel
 
         if (IsShuffleEnabled)
         {
-            foreach (var track in activeList.Where(t => CurrentTrack is null || t.Id != CurrentTrack.Id))
+            var shuffled = activeList
+                .Where(t => CurrentTrack is null || t.Id != CurrentTrack.Id)
+                .OrderBy(_ => _random.Next())
+                .ToList();
+
+            foreach (var track in shuffled)
             {
                 if (!seenTrackIds.Add(track.Id))
                     continue;
@@ -298,7 +308,8 @@ public partial class MainWindowViewModel
 
     private async Task StartActiveListeningEventAsync(TrackListItemDto track)
     {
-        var (eventId, error) = await _authSessionService.ApiClient.StartListeningEventAsync(track.Id, "Direct", null, DateTime.UtcNow);
+        var (sourceType, sourceId) = ResolveListeningSource(track);
+        var (eventId, error) = await _authSessionService.ApiClient.StartListeningEventAsync(track.Id, sourceType, sourceId, DateTime.UtcNow);
         if (!string.IsNullOrWhiteSpace(error) || eventId is null)
         {
             _activeListeningEventId = null;
@@ -347,6 +358,11 @@ public partial class MainWindowViewModel
     private async Task PlayTrackAsync(TrackListItemDto? track)
     {
         if (track is null) return;
+        if (!AllowExplicitContent && track.Explicit)
+        {
+            Status = "Этот трек доступен только после подтверждения 18+ в настройках.";
+            return;
+        }
         if (string.IsNullOrWhiteSpace(track.Source)) { Status = "У трека нет Source."; return; }
         EnsurePlaybackContextForTrack(track);
 
@@ -357,6 +373,8 @@ public partial class MainWindowViewModel
             _audioPlayer.Volume = IsMuted ? 0d : VolumePercent / 100d;
             _audioPlayer.Play();
             CurrentTrack = track;
+            UpdateShuffleCursorForTrack(track);
+            UpdateCurrentArtistPlaysTotal(track.ArtistUserId);
             SelectedTrack = track;
             var albumTrack = AlbumTracks.FirstOrDefault(t => t.Id == track.Id);
             if (albumTrack is not null)
@@ -418,7 +436,6 @@ public partial class MainWindowViewModel
     {
         if (activeList.Count == 0)
             return null;
-
         if (CurrentTrack is null)
             return activeList[_random.Next(activeList.Count)];
 
@@ -473,6 +490,48 @@ public partial class MainWindowViewModel
     }
 
     private void ToggleRepeatMode() => PlaybackMode = PlaybackMode switch { PlaybackMode.Normal => PlaybackMode.RepeatAll, PlaybackMode.RepeatAll => PlaybackMode.RepeatOne, _ => PlaybackMode.Normal };
+
+    private void EnsureShuffleOrder() { }
+    private void UpdateShuffleCursorForTrack(TrackListItemDto track) { }
+
+    private void UpdateCurrentArtistPlaysTotal(int artistUserId)
+    {
+        if (artistUserId <= 0)
+            return;
+
+        var all = Tracks
+            .Concat(ArtistTopTracks)
+            .Concat(AlbumTracks)
+            .Concat(LikedTracks)
+            .Concat(PlaylistTracks)
+            .Concat(ForYouTracks)
+            .Concat(RecentTracks)
+            .GroupBy(t => t.Id)
+            .Select(g => g.First());
+        _currentArtistPlaysTotal = all.Where(t => t.ArtistUserId == artistUserId).Sum(t => Math.Max(0, t.PlayCount));
+        if (_currentArtistPlaysTotal > 0)
+            _artistMonthlyStreams = _currentArtistPlaysTotal;
+        OnPropertyChanged(nameof(CurrentArtistTotalStreamsText));
+        OnPropertyChanged(nameof(ArtistMonthlyStreamsText));
+    }
+
+    private (string SourceType, int? SourceId) ResolveListeningSource(TrackListItemDto track)
+    {
+        if (_playbackContextKey == "playlist")
+        {
+            var playlistId = SelectedPlaylist?.Id;
+            if (playlistId is not null && playlistId > 0)
+                return ("Playlist", playlistId);
+        }
+
+        if (_playbackContextKey == "album" && track.AlbumId is > 0)
+            return ("Album", track.AlbumId);
+
+        if (track.AlbumId is > 0)
+            return ("Album", track.AlbumId);
+
+        return ("Direct", null);
+    }
 
     private async Task PlayAlbumPrimaryAsync()
     {

@@ -50,7 +50,7 @@ public partial class MainWindowViewModel
         ProfileLogin = profile.Login;
         ProfileEmail = profile.Email;
         ProfilePhone = profile.Phone;
-        IsEmailVisible = false;
+        IsContactsVisible = false;
         SettingsArtistNameInput = profile.ArtistName ?? string.Empty;
         EditDisplayName = DisplayName;
         EditAvatarPath = string.Empty;
@@ -81,9 +81,6 @@ public partial class MainWindowViewModel
     {
         GenreOptions.Clear();
         GenreOptions.Add("Все");
-        GenreOptions.Add("Музыка");
-        GenreOptions.Add("Подкасты");
-        GenreOptions.Add("Аудиокниги");
         SelectedGenre = "Все";
     }
 
@@ -92,16 +89,19 @@ public partial class MainWindowViewModel
         IsBusy = true;
         try
         {
-            var (items, error) = await _authSessionService.ApiClient.GetTracksAsync(SearchText, null, "title");
+            var genreFilter = string.Equals(SelectedGenre, "Все", StringComparison.OrdinalIgnoreCase) ? null : SelectedGenre;
+            var (items, error) = await _authSessionService.ApiClient.GetTracksAsync(SearchText, genreFilter, "title");
             await HydrateAlbumTitlesAsync(items);
             Tracks.Clear();
-            foreach (var item in items) Tracks.Add(item);
+            foreach (var item in items.Where(CanShowTrackForCurrentSettings)) Tracks.Add(item);
 
             Status = string.IsNullOrWhiteSpace(error)
                 ? "Треки обновлены."
                 : $"Ошибка треков: {error}";
 
             await BuildSearchResultsAsync();
+            RefreshOverviewGenresFromTracks();
+            await BuildPersonalRecommendationsAsync();
             if (Tracks.Count > 0 && SelectedTrack is null) SelectedTrack = Tracks[0];
             SeedRecentTracks();
             UpdateNowPlayingPreview();
@@ -112,10 +112,47 @@ public partial class MainWindowViewModel
         }
     }
 
+    private bool CanShowTrackForCurrentSettings(TrackListItemDto track)
+    {
+        if (!AllowExplicitContent && track.Explicit)
+            return false;
+        return true;
+    }
+
+    private void RefreshOverviewGenresFromTracks()
+    {
+        var genres = Tracks
+            .SelectMany(t => t.GenreTitles ?? Array.Empty<string>())
+            .Where(g => !string.IsNullOrWhiteSpace(g))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(g => g, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        GenreOptions.Clear();
+        GenreOptions.Add("Все");
+        foreach (var genre in genres)
+            GenreOptions.Add(genre);
+    }
+
     private async Task SearchTracksAsync()
     {
         await LoadTracksAsync();
         ActiveSection = string.IsNullOrWhiteSpace(SearchText) ? "tracks" : "search";
+    }
+
+    public async Task OpenOverviewGenreAsync(string genre)
+    {
+        SelectedGenre = string.IsNullOrWhiteSpace(genre) ? "Все" : genre;
+        IsOverviewOpen = false;
+        ActiveSection = "tracks";
+
+        var (items, error) = await _authSessionService.ApiClient.GetTracksAsync(null,
+            string.Equals(SelectedGenre, "Все", StringComparison.OrdinalIgnoreCase) ? null : SelectedGenre, "plays");
+        await HydrateAlbumTitlesAsync(items);
+        Tracks.Clear();
+        foreach (var item in items.Where(CanShowTrackForCurrentSettings))
+            Tracks.Add(item);
+        Status = string.IsNullOrWhiteSpace(error) ? $"Жанр: {SelectedGenre}" : $"Ошибка жанра: {error}";
     }
 
     private async Task LoadSubscriptionPlansAsync()
@@ -211,13 +248,15 @@ public partial class MainWindowViewModel
                 Id = albumGroup.Key,
                 Title = !string.IsNullOrWhiteSpace(first.AlbumTitle) ? first.AlbumTitle! : $"Альбом #{albumGroup.Key}",
                 CoverPath = albumCover,
-                CoverBitmap = albumGroup.Select(t => t.CoverBitmap).FirstOrDefault(b => b is not null)
+                CoverBitmap = albumGroup.Select(t => t.CoverBitmap).FirstOrDefault(b => b is not null),
+                PlayCount = albumGroup.Sum(t => Math.Max(0, t.PlayCount))
             });
         }
 
+        var publicPlaylists = Playlists.Where(p => p.IsPublic);
         var playlists = string.IsNullOrWhiteSpace(needle)
-            ? Playlists
-            : new ObservableCollection<PlaylistListItemDto>(Playlists.Where(p =>
+            ? new ObservableCollection<PlaylistListItemDto>(publicPlaylists)
+            : new ObservableCollection<PlaylistListItemDto>(publicPlaylists.Where(p =>
                 p.Title.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
                 (!string.IsNullOrWhiteSpace(p.Description) &&
                  p.Description.Contains(needle, StringComparison.OrdinalIgnoreCase))));

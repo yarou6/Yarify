@@ -51,6 +51,7 @@ public class PlayerController : ControllerBase
         {
             "artist" => tracksQuery.OrderBy(s => s.ArtistUser.DisplayName).ThenBy(s => s.Title),
             "duration" => tracksQuery.OrderByDescending(s => s.DurationSec).ThenBy(s => s.Title),
+            "plays" => tracksQuery.OrderByDescending(s => s.PlayCount).ThenBy(s => s.Title),
             _ => tracksQuery.OrderBy(s => s.Title)
         };
 
@@ -124,7 +125,8 @@ public class PlayerController : ControllerBase
                 Title = a.Title,
                 CoverPath = a.CoverPath ?? a.Songs.Select(s => s.CoverPath).FirstOrDefault(),
                 ReleaseDate = a.ReleaseDate,
-                TracksCount = a.Songs.Count
+                TracksCount = a.Songs.Count,
+                PlayCount = (int)Math.Min(int.MaxValue, a.Songs.Sum(s => s.PlayCount))
             })
             .ToListAsync();
 
@@ -427,7 +429,8 @@ public class PlayerController : ControllerBase
                 Title = a.Title,
                 CoverPath = a.CoverPath ?? a.Songs.Select(s => s.CoverPath).FirstOrDefault(),
                 ReleaseDate = a.ReleaseDate,
-                TracksCount = a.Songs.Count
+                TracksCount = a.Songs.Count,
+                PlayCount = (int)Math.Min(int.MaxValue, a.Songs.Sum(s => s.PlayCount))
             })
             .ToListAsync();
 
@@ -480,7 +483,8 @@ public class PlayerController : ControllerBase
                 Title = a.Title,
                 CoverPath = a.CoverPath ?? a.Songs.Select(s => s.CoverPath).FirstOrDefault(),
                 ReleaseDate = a.ReleaseDate,
-                TracksCount = a.Songs.Count
+                TracksCount = a.Songs.Count,
+                PlayCount = (int)Math.Min(int.MaxValue, a.Songs.Sum(s => s.PlayCount))
             })
             .ToListAsync();
 
@@ -1281,7 +1285,8 @@ public class PlayerController : ControllerBase
                 Title = a.Title,
                 CoverPath = a.CoverPath ?? a.Songs.Select(s => s.CoverPath).FirstOrDefault(),
                 ReleaseDate = a.ReleaseDate,
-                TracksCount = a.Songs.Count
+                TracksCount = a.Songs.Count,
+                PlayCount = (int)Math.Min(int.MaxValue, a.Songs.Sum(s => s.PlayCount))
             })
             .ToListAsync();
 
@@ -1672,7 +1677,9 @@ public class PlayerController : ControllerBase
             PlayCount = s.PlayCount > int.MaxValue ? int.MaxValue : (int)s.PlayCount,
             ArtistUserId = s.ArtistUserId,
             AlbumId = s.AlbumId,
-            AlbumTitle = s.Album != null ? s.Album.Title : null
+            AlbumTitle = s.Album != null ? s.Album.Title : null,
+            Explicit = s.Explicit,
+            GenreTitles = s.Genres.Select(g => g.Title).ToList()
         };
     }
 
@@ -1708,6 +1715,7 @@ public class PlayerController : ControllerBase
         await _db.SaveChangesAsync();
     }
 }
+
 
 
 
