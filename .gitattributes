@@ -1,0 +1,19 @@
+# Keep GitHub language stats focused on source code.
+
+# Build artifacts / generated output
+bin/** linguist-generated=true linguist-vendored=true
+obj/** linguist-generated=true linguist-vendored=true
+_build_tmp/** linguist-generated=true linguist-vendored=true
+
+# IDE / run configs
+.idea/** linguist-generated=true linguist-vendored=true
+.run/** linguist-generated=true linguist-vendored=true
+
+# Minified bundles
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+
+# Frontend dependency directories (if ever committed)
+**/node_modules/** linguist-vendored=true
+**/dist/** linguist-generated=true linguist-vendored=true
+**/build/** linguist-generated=true linguist-vendored=true
