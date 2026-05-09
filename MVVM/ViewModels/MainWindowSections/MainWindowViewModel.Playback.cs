@@ -29,6 +29,16 @@ public partial class MainWindowViewModel
 
     private string ResolvePlaybackContextForUiTrack(TrackListItemDto track)
     {
+        if (IsTracksSection)
+        {
+            if (ForYouTracks.Any(t => t.Id == track.Id))
+                return "for-you";
+            if (RecentTracks.Any(t => t.Id == track.Id))
+                return "recent";
+            if (HomeLikedRecentTracks.Any(t => t.Id == track.Id))
+                return "home-liked";
+        }
+
         if (IsAlbumSection && AlbumTracks.Any(t => t.Id == track.Id))
             return "album";
         if (IsPlaylistsSection && PlaylistTracks.Any(t => t.Id == track.Id))
@@ -50,6 +60,12 @@ public partial class MainWindowViewModel
             return "artist";
         if (SearchResultTracks.Any(t => t.Id == track.Id))
             return "search";
+        if (ForYouTracks.Any(t => t.Id == track.Id))
+            return "for-you";
+        if (RecentTracks.Any(t => t.Id == track.Id))
+            return "recent";
+        if (HomeLikedRecentTracks.Any(t => t.Id == track.Id))
+            return "home-liked";
         if (AlbumTracks.Any(t => t.Id == track.Id))
             return "album";
         if (Tracks.Any(t => t.Id == track.Id))
@@ -169,13 +185,13 @@ public partial class MainWindowViewModel
         var activeList = GetActivePlaybackList();
         if (activeList.Count == 0)
             return result;
+        if (CurrentTrack is null)
+            return result;
 
         if (IsShuffleEnabled)
         {
-            var shuffled = activeList
-                .Where(t => CurrentTrack is null || t.Id != CurrentTrack.Id)
-                .OrderBy(_ => _random.Next())
-                .ToList();
+            EnsureShuffleOrder();
+            var shuffled = GetShuffledUpcomingTracks(activeList);
 
             foreach (var track in shuffled)
             {
@@ -265,6 +281,9 @@ public partial class MainWindowViewModel
             "liked" => LikedTracks,
             "artist" => ArtistTopTracks,
             "search" => SearchResultTracks,
+            "for-you" => ForYouTracks,
+            "recent" => RecentTracks,
+            "home-liked" => HomeLikedRecentTracks,
             "queue" => QueueItems.Select(q => q.Track).Where(t => t is not null).Cast<TrackListItemDto>().ToList(),
             _ => Tracks
         };
@@ -291,6 +310,12 @@ public partial class MainWindowViewModel
             _playbackContextKey = "artist";
         else if (SearchResultTracks.Any(t => t.Id == track.Id))
             _playbackContextKey = "search";
+        else if (ForYouTracks.Any(t => t.Id == track.Id))
+            _playbackContextKey = "for-you";
+        else if (RecentTracks.Any(t => t.Id == track.Id))
+            _playbackContextKey = "recent";
+        else if (HomeLikedRecentTracks.Any(t => t.Id == track.Id))
+            _playbackContextKey = "home-liked";
         else if (Tracks.Any(t => t.Id == track.Id))
             _playbackContextKey = "tracks";
     }
@@ -434,16 +459,36 @@ public partial class MainWindowViewModel
 
     private TrackListItemDto? NextShuffled(IReadOnlyList<TrackListItemDto> activeList)
     {
+        EnsureShuffleOrder();
         if (activeList.Count == 0)
             return null;
+
+        if (_shuffleTrackOrder.Count == 0)
+            return null;
+
         if (CurrentTrack is null)
-            return activeList[_random.Next(activeList.Count)];
+        {
+            var firstId = _shuffleTrackOrder[0];
+            _shuffleCursor = 0;
+            return activeList.FirstOrDefault(t => t.Id == firstId);
+        }
 
-        var candidates = activeList.Where(t => t.Id != CurrentTrack.Id).ToList();
-        if (candidates.Count == 0)
-            return PlaybackMode == PlaybackMode.RepeatAll ? activeList[0] : null;
+        var currentIndex = _shuffleTrackOrder.IndexOf(CurrentTrack.Id);
+        if (currentIndex < 0)
+        {
+            EnsureShuffleOrder();
+            currentIndex = _shuffleTrackOrder.IndexOf(CurrentTrack.Id);
+            if (currentIndex < 0)
+                currentIndex = -1;
+        }
 
-        return candidates[_random.Next(candidates.Count)];
+        var nextIndex = currentIndex + 1;
+        if (nextIndex >= _shuffleTrackOrder.Count)
+            nextIndex = 0;
+
+        _shuffleCursor = nextIndex;
+        var nextId = _shuffleTrackOrder[nextIndex];
+        return activeList.FirstOrDefault(t => t.Id == nextId);
     }
 
     private TrackListItemDto? NextFromTracks(IReadOnlyList<TrackListItemDto> activeList)
@@ -491,8 +536,84 @@ public partial class MainWindowViewModel
 
     private void ToggleRepeatMode() => PlaybackMode = PlaybackMode switch { PlaybackMode.Normal => PlaybackMode.RepeatAll, PlaybackMode.RepeatAll => PlaybackMode.RepeatOne, _ => PlaybackMode.Normal };
 
-    private void EnsureShuffleOrder() { }
-    private void UpdateShuffleCursorForTrack(TrackListItemDto track) { }
+    private void EnsureShuffleOrder(bool forceReshuffle = false)
+    {
+        var activeList = GetActivePlaybackList();
+        var activeIds = activeList.Select(t => t.Id).Distinct().ToList();
+        if (activeIds.Count == 0)
+        {
+            _shuffleTrackOrder = new List<int>();
+            _shuffleCursor = -1;
+            return;
+        }
+
+        var requiresReset = _shuffleTrackOrder.Count != activeIds.Count ||
+                            _shuffleTrackOrder.Except(activeIds).Any() ||
+                            activeIds.Except(_shuffleTrackOrder).Any();
+
+        if (requiresReset || forceReshuffle)
+        {
+            _shuffleTrackOrder = activeIds.ToList();
+            for (var i = _shuffleTrackOrder.Count - 1; i > 0; i--)
+            {
+                var j = _random.Next(i + 1);
+                (_shuffleTrackOrder[i], _shuffleTrackOrder[j]) = (_shuffleTrackOrder[j], _shuffleTrackOrder[i]);
+            }
+        }
+
+        if (CurrentTrack is null)
+        {
+            _shuffleCursor = -1;
+            return;
+        }
+
+        _shuffleCursor = _shuffleTrackOrder.IndexOf(CurrentTrack.Id);
+    }
+
+    private void UpdateShuffleCursorForTrack(TrackListItemDto track)
+    {
+        if (!IsShuffleEnabled)
+            return;
+
+        EnsureShuffleOrder();
+        var idx = _shuffleTrackOrder.IndexOf(track.Id);
+        if (idx >= 0)
+        {
+            _shuffleCursor = idx;
+            return;
+        }
+
+        _shuffleTrackOrder.Add(track.Id);
+        _shuffleCursor = _shuffleTrackOrder.Count - 1;
+    }
+
+    private IReadOnlyList<TrackListItemDto> GetShuffledUpcomingTracks(IReadOnlyList<TrackListItemDto> activeList)
+    {
+        if (_shuffleTrackOrder.Count == 0)
+            return Array.Empty<TrackListItemDto>();
+
+        var byId = activeList.GroupBy(t => t.Id).ToDictionary(g => g.Key, g => g.First());
+        var currentIndex = CurrentTrack is null ? -1 : _shuffleTrackOrder.IndexOf(CurrentTrack.Id);
+        var start = currentIndex < 0 ? 0 : currentIndex + 1;
+        var result = new List<TrackListItemDto>();
+
+        for (var i = start; i < _shuffleTrackOrder.Count; i++)
+        {
+            if (byId.TryGetValue(_shuffleTrackOrder[i], out var track))
+                result.Add(track);
+        }
+
+        if (PlaybackMode == PlaybackMode.RepeatAll && currentIndex >= 0)
+        {
+            for (var i = 0; i <= currentIndex; i++)
+            {
+                if (byId.TryGetValue(_shuffleTrackOrder[i], out var track))
+                    result.Add(track);
+            }
+        }
+
+        return result;
+    }
 
     private void UpdateCurrentArtistPlaysTotal(int artistUserId)
     {
@@ -509,7 +630,7 @@ public partial class MainWindowViewModel
             .GroupBy(t => t.Id)
             .Select(g => g.First());
         _currentArtistPlaysTotal = all.Where(t => t.ArtistUserId == artistUserId).Sum(t => Math.Max(0, t.PlayCount));
-        if (_currentArtistPlaysTotal > 0)
+        if (_currentArtistPlaysTotal > 0 && artistUserId == _currentArtistUserId)
             _artistMonthlyStreams = _currentArtistPlaysTotal;
         OnPropertyChanged(nameof(CurrentArtistTotalStreamsText));
         OnPropertyChanged(nameof(ArtistMonthlyStreamsText));

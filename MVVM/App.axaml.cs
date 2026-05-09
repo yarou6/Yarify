@@ -10,7 +10,6 @@ using MVVM.Services;
 using MVVM.ViewModels;
 using MVVM.Views;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace MVVM;
 
@@ -248,12 +247,6 @@ public partial class App : Application
 
     private static IAudioPlayerService CreateAudioPlayerService()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return new NAudioPlayerService();
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            return new LibVlcAudioPlayerService();
-
-        return new LibVlcAudioPlayerService();
+        return new NAudioPlayerService();
     }
 }

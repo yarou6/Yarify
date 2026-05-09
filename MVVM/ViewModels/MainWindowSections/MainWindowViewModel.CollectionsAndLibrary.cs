@@ -39,6 +39,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(CanMoveQueueUp));
         OnPropertyChanged(nameof(CanMoveQueueDown));
         await LoadHomeLibraryHighlightsAsync();
+        await RefreshOverviewShelvesAsync();
         await BuildPersonalRecommendationsAsync();
     }
 

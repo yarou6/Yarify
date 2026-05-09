@@ -23,6 +23,7 @@ public partial class MainWindowViewModel
         VolumePercent = (int)Math.Round(Math.Clamp(settings.Volume, 0.0, 1.0) * 100);
         IsMuted = settings.IsMuted;
         AllowExplicitContent = settings.AllowExplicitContent;
+        _restoredLastTrackId = settings.LastTrackId;
 
         ApplyFixedHomeCategories();
         await LoadTracksAsync();
@@ -66,6 +67,24 @@ public partial class MainWindowViewModel
         if (!string.IsNullOrWhiteSpace(error))
             return;
 
+        FollowingArtists.Clear();
+        foreach (var item in items.OrderBy(x => x.ArtistName, StringComparer.OrdinalIgnoreCase))
+        {
+            item.AvatarPath = ResolveAvatarDisplaySource(item.AvatarPath);
+            try
+            {
+                var localAvatar = TryResolveAvatarByFileName(item.AvatarPath ?? string.Empty);
+                if (!string.IsNullOrWhiteSpace(localAvatar) && File.Exists(localAvatar))
+                    item.AvatarBitmap = new Bitmap(localAvatar);
+            }
+            catch
+            {
+                item.AvatarBitmap = null;
+            }
+
+            FollowingArtists.Add(item);
+        }
+
         FollowingArtistsCount = items.Count;
     }
 
@@ -101,8 +120,12 @@ public partial class MainWindowViewModel
 
             await BuildSearchResultsAsync();
             RefreshOverviewGenresFromTracks();
+            await RefreshOverviewShelvesAsync();
             await BuildPersonalRecommendationsAsync();
-            if (Tracks.Count > 0 && SelectedTrack is null) SelectedTrack = Tracks[0];
+            if (SelectedTrack is null && _restoredLastTrackId > 0)
+                SelectedTrack = Tracks.FirstOrDefault(t => t.Id == _restoredLastTrackId);
+            if (Tracks.Count > 0 && SelectedTrack is null)
+                SelectedTrack = Tracks[0];
             SeedRecentTracks();
             UpdateNowPlayingPreview();
         }
@@ -138,6 +161,78 @@ public partial class MainWindowViewModel
     {
         await LoadTracksAsync();
         ActiveSection = string.IsNullOrWhiteSpace(SearchText) ? "tracks" : "search";
+    }
+
+    private async Task RefreshOverviewShelvesAsync()
+    {
+        var playlistTrackIds = new HashSet<int>();
+        foreach (var playlist in Playlists)
+        {
+            var (tracks, error) = await _authSessionService.ApiClient.GetPlaylistTracksAsync(playlist.Id);
+            if (!string.IsNullOrWhiteSpace(error))
+                continue;
+
+            foreach (var track in tracks)
+                playlistTrackIds.Add(track.Id);
+        }
+
+        var genreScores = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var track in LikedTracks)
+        {
+            foreach (var genre in track.GenreTitles ?? Array.Empty<string>())
+            {
+                if (string.IsNullOrWhiteSpace(genre))
+                    continue;
+                genreScores[genre] = genreScores.TryGetValue(genre, out var score) ? score + 4 : 4;
+            }
+        }
+
+        foreach (var track in RecentTracks)
+        {
+            foreach (var genre in track.GenreTitles ?? Array.Empty<string>())
+            {
+                if (string.IsNullOrWhiteSpace(genre))
+                    continue;
+                genreScores[genre] = genreScores.TryGetValue(genre, out var score) ? score + 2 : 2;
+            }
+        }
+
+        var genreToTracks = Tracks
+            .Where(track => !_likedSongIds.Contains(track.Id))
+            .Where(track => !playlistTrackIds.Contains(track.Id))
+            .SelectMany(track => (track.GenreTitles ?? Array.Empty<string>())
+                .Where(g => !string.IsNullOrWhiteSpace(g))
+                .Select(genre => new { Genre = genre, Track = track }))
+            .GroupBy(x => x.Genre, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Track).DistinctBy(t => t.Id).ToList(), StringComparer.OrdinalIgnoreCase);
+
+        var orderedGenres = genreToTracks.Keys
+            .OrderByDescending(g => genreScores.TryGetValue(g, out var score) ? score : 0)
+            .ThenByDescending(g => genreToTracks[g].Count)
+            .ThenBy(g => g, StringComparer.OrdinalIgnoreCase)
+            .Take(10)
+            .ToList();
+
+        OverviewGenreShelves.Clear();
+        foreach (var genre in orderedGenres)
+        {
+            var tracks = genreToTracks[genre]
+                .OrderByDescending(t => _likedSongIds.Contains(t.Id))
+                .ThenByDescending(t => Math.Max(0, t.PlayCount))
+                .ThenBy(t => t.Title, StringComparer.OrdinalIgnoreCase)
+                .Take(6)
+                .ToList();
+
+            if (tracks.Count == 0)
+                continue;
+
+            OverviewGenreShelves.Add(new OverviewGenreShelfDto
+            {
+                Genre = genre,
+                Tracks = tracks
+            });
+        }
     }
 
     public async Task OpenOverviewGenreAsync(string genre)

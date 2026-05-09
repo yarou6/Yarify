@@ -236,8 +236,14 @@ public sealed class AuthApiClient
     public async Task<string?> SetArtistRoleAsync(UsersPanelRoleRequestDto payload) =>
         await PatchJsonWithoutResponseAsync("/api/users-panel/role", payload);
 
-    public async Task<(IReadOnlyList<FollowingArtistItemDto> Data, string? Error)> GetFollowingArtistsAsync() =>
-        await GetListAsync<FollowingArtistItemDto>("/api/player/social/following");
+    public async Task<(IReadOnlyList<FollowingArtistItemDto> Data, string? Error)> GetFollowingArtistsAsync()
+    {
+        var (items, error) = await GetListAsync<FollowingArtistItemDto>("/api/player/social/following");
+        foreach (var artist in items)
+            artist.AvatarPath = ResolveMediaDisplaySource(artist.AvatarPath);
+
+        return (items, error);
+    }
 
     public async Task<(IReadOnlyList<ListeningHistoryItemDto> Data, string? Error)> GetRecentHistoryAsync(int take = 50)
     {

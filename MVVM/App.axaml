@@ -176,6 +176,37 @@
             <Setter Property="BorderBrush" Value="{StaticResource TextMutedBrush}"/>
         </Style>
 
+        <Style Selector="CheckBox.remember-me">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Border Width="16"
+                                Height="16"
+                                CornerRadius="4"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="{StaticResource TextMutedBrush}"
+                                VerticalAlignment="Center">
+                            <Path x:Name="RememberMeCheckGlyph"
+                                  Data="M 3 8 L 6.5 12 L 13 4"
+                                  Stroke="{StaticResource AccentBrush}"
+                                  StrokeThickness="2"
+                                  StrokeLineCap="Round"
+                                  IsVisible="False"/>
+                        </Border>
+
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          VerticalAlignment="Center"/>
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="CheckBox.remember-me:checked /template/ Path#RememberMeCheckGlyph">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+
         <Style Selector="Button.nav">
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="14,10"/>

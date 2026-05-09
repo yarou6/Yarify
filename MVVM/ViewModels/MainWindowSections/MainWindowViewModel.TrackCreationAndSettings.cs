@@ -433,6 +433,7 @@ public partial class MainWindowViewModel
 
     private async Task LogoutAsync()
     {
+        await SaveSettingsAsync();
         _audioPlayer.Stop();
         var session = await _authSessionService.SessionStore.TryLoadAsync();
         if (session is not null && !string.IsNullOrWhiteSpace(session.RefreshToken))
@@ -447,7 +448,8 @@ public partial class MainWindowViewModel
     {
         Volume = VolumePercent / 100d,
         IsMuted = IsMuted,
-        AllowExplicitContent = AllowExplicitContent
+        AllowExplicitContent = AllowExplicitContent,
+        LastTrackId = CurrentTrack?.Id ?? SelectedTrack?.Id ?? 0
     });
 
     private void UpdatePlayback()
@@ -542,6 +544,5 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(CanShowAllArtistReleases));
     }
 }
-
 
 

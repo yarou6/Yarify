@@ -306,7 +306,7 @@ public partial class MainWindow : Window
 
     private async void OverviewGenreCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not Control { DataContext: string genre } control)
+        if (sender is not Control { DataContext: OverviewGenreShelfDto shelf } control)
             return;
 
         var point = e.GetCurrentPoint(control);
@@ -316,7 +316,22 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        await vm.OpenOverviewGenreAsync(genre);
+        await vm.OpenOverviewGenreAsync(shelf.Genre);
+    }
+
+    private async void FollowingArtist_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control { DataContext: MVVM.Models.Profile.FollowingArtistItemDto artist } control)
+            return;
+
+        var point = e.GetCurrentPoint(control);
+        if (point.Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+            return;
+
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        await vm.OpenArtistByIdFromUiAsync(artist.ArtistUserId);
     }
 
     private async Task<string?> PickSingleFilePathAsync(string title, IReadOnlyList<FilePickerFileType> filters)

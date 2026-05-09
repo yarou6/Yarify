@@ -112,6 +112,9 @@ public partial class MainWindowViewModel : BaseVM
     private bool _isAdvancingTrack;
     private string _playbackContextKey = "tracks";
     private int _currentArtistPlaysTotal;
+    private int _restoredLastTrackId;
+    private List<int> _shuffleTrackOrder = new();
+    private int _shuffleCursor = -1;
 
     private bool _isShuffleEnabled;
     private bool _isQueuePanelOpen = true;
@@ -154,15 +157,18 @@ public partial class MainWindowViewModel : BaseVM
         HomeRecentCollections = new ObservableCollection<HomeMediaCollectionItemDto>();
         ForYouTracks = new ObservableCollection<TrackListItemDto>();
         HomeRecommendedAlbums = new ObservableCollection<AlbumListItemDto>();
+        OverviewGenreShelves = new ObservableCollection<OverviewGenreShelfDto>();
         SubscriptionPlans = new ObservableCollection<SubscriptionPlanDto>();
         SearchResultTracks = new ObservableCollection<TrackListItemDto>();
         SearchResultArtists = new ObservableCollection<ArtistSearchItemDto>();
         SearchResultAlbums = new ObservableCollection<AlbumListItemDto>();
         SearchResultPlaylists = new ObservableCollection<PlaylistListItemDto>();
+        FollowingArtists = new ObservableCollection<FollowingArtistItemDto>();
         AddTrackGenres = new ObservableCollection<AddTrackGenreItemViewModel>();
         FilteredAddTrackGenres = new ObservableCollection<AddTrackGenreItemViewModel>();
 
         GenreOptions = new ObservableCollection<string> { "Все", "Музыка", "Подкасты", "Аудиокниги" };
+        LanguageOptions = new ObservableCollection<string> { "Русский (Russian)", "English (US)" };
         SearchTypeOptions = new ObservableCollection<string> { "Все", "Исполнители", "Треки", "Альбомы", "Плейлисты" };
 
         DisplayName = $"Пользователь #{authData.UserId}";
@@ -299,12 +305,15 @@ public partial class MainWindowViewModel : BaseVM
     public ObservableCollection<HomeMediaCollectionItemDto> HomeRecentCollections { get; }
     public ObservableCollection<TrackListItemDto> ForYouTracks { get; }
     public ObservableCollection<AlbumListItemDto> HomeRecommendedAlbums { get; }
+    public ObservableCollection<OverviewGenreShelfDto> OverviewGenreShelves { get; }
     public ObservableCollection<string> GenreOptions { get; }
+    public ObservableCollection<string> LanguageOptions { get; }
     public ObservableCollection<SubscriptionPlanDto> SubscriptionPlans { get; }
     public ObservableCollection<TrackListItemDto> SearchResultTracks { get; }
     public ObservableCollection<ArtistSearchItemDto> SearchResultArtists { get; }
     public ObservableCollection<AlbumListItemDto> SearchResultAlbums { get; }
     public ObservableCollection<PlaylistListItemDto> SearchResultPlaylists { get; }
+    public ObservableCollection<FollowingArtistItemDto> FollowingArtists { get; }
     public ObservableCollection<AddTrackGenreItemViewModel> AddTrackGenres { get; }
     public ObservableCollection<AddTrackGenreItemViewModel> FilteredAddTrackGenres { get; }
     public ObservableCollection<string> SearchTypeOptions { get; }
@@ -312,7 +321,13 @@ public partial class MainWindowViewModel : BaseVM
     public TrackListItemDto? SelectedTrack
     {
         get => _selectedTrack;
-        set => SetProperty(ref _selectedTrack, value, RaiseCanExecutes);
+        set
+        {
+            if (!SetProperty(ref _selectedTrack, value, RaiseCanExecutes))
+                return;
+            if (!_isInitializing)
+                _ = SaveSettingsAsync();
+        }
     }
 
     public TrackListItemDto? SelectedLikedTrack
@@ -384,6 +399,8 @@ public partial class MainWindowViewModel : BaseVM
                 return;
             OnPropertyChanged(nameof(AddCurrentTrackToLikedButtonText));
             UpdatePlaylistTrackPresenceFlags();
+            if (!_isInitializing)
+                _ = SaveSettingsAsync();
         }
     }
 
@@ -841,7 +858,23 @@ public partial class MainWindowViewModel : BaseVM
     public string SettingsLanguage
     {
         get => _settingsLanguage;
-        set => SetProperty(ref _settingsLanguage, value);
+        set
+        {
+            const string russian = "Русский (Russian)";
+            if (!string.Equals(value, russian, StringComparison.Ordinal))
+            {
+                if (!string.Equals(_settingsLanguage, russian, StringComparison.Ordinal))
+                {
+                    _settingsLanguage = russian;
+                    OnPropertyChanged(nameof(SettingsLanguage));
+                }
+
+                Status = "Перевод на этот язык еще не сделан.";
+                return;
+            }
+
+            SetProperty(ref _settingsLanguage, russian);
+        }
     }
 
     public bool IsContactsVisible
@@ -865,7 +898,12 @@ public partial class MainWindowViewModel : BaseVM
             if (!SetProperty(ref _isShuffleEnabled, value))
                 return;
             if (value)
-                EnsureShuffleOrder();
+                EnsureShuffleOrder(forceReshuffle: true);
+            else
+            {
+                _shuffleTrackOrder.Clear();
+                _shuffleCursor = -1;
+            }
 
             OnPropertyChanged(nameof(ShuffleLabel));
             OnPropertyChanged(nameof(IsRepeatOrShuffleActive));
@@ -1104,7 +1142,7 @@ public partial class MainWindowViewModel : BaseVM
         $"{Math.Max(0, (SelectedArtistTrack ?? CurrentTrack ?? SelectedTrack)?.PlayCount ?? _artistMonthlyStreams):N0} прослушиваний";
 
     public string ArtistMonthlyStreamsText => $"{Math.Max(0, _artistMonthlyStreams):N0} прослушиваний";
-    public string CurrentArtistTotalStreamsText => $"{Math.Max(0, _currentArtistPlaysTotal):N0} прослушиваний";
+    public string CurrentArtistTotalStreamsText => $"{Math.Max(0, _artistMonthlyStreams):N0} прослушиваний";
     public string ArtistFollowersText => $"{Math.Max(0, _artistFollowersCount):N0} подписчиков";
     public string ArtistFollowButtonText => _isFollowingArtist ? "Отписаться" : "Подписаться";
 

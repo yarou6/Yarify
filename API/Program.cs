@@ -2,7 +2,6 @@
 using System.Security.Claims;
 using System.Text;
 using API.DB;
-using API.Extensions;
 using API.Models.DTO;
 using API.Services.Password;
 using API.Services.Token;
@@ -104,9 +103,6 @@ builder.Services
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-
-await app.EnsurePlayerSettingsTableAsync();
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -122,3 +118,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

@@ -50,6 +50,7 @@ public partial class MainWindowViewModel
             ArtistTopTracks.Add(t);
         }
         _artistMonthlyStreams = totalStreams;
+        _currentArtistPlaysTotal = totalStreams;
         foreach (var a in artist.Albums)
         {
             ArtistAlbums.Add(a);
@@ -102,6 +103,8 @@ public partial class MainWindowViewModel
                 ?? string.Empty;
         }
         ActiveSection = "artist";
+        OnPropertyChanged(nameof(CurrentArtistTotalStreamsText));
+        OnPropertyChanged(nameof(ArtistMonthlyStreamsText));
         RaiseCanExecutes();
     }
 
@@ -164,6 +167,7 @@ public partial class MainWindowViewModel
 
         _isFollowingArtist = state.IsFollowing;
         _artistFollowersCount = state.FollowersCount;
+        await LoadFollowingArtistsAsync();
         Status = _isFollowingArtist ? "Подписка оформлена." : "Подписка отменена.";
         RaiseCanExecutes();
     }

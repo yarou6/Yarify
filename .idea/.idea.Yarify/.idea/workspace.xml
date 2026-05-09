@@ -7,8 +7,27 @@
     <projectFile>MVVM/MVVM.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="27637ad2-15bb-4656-97b4-91658e85949a" name="Changes" comment="r">
+    <list default="true" id="27637ad2-15bb-4656-97b4-91658e85949a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Yarify/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Yarify/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Extensions/DatabaseBootstrapExtensions.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/App.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/App.axaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/App.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/App.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/MVVM.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/MVVM.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Models/Playback/PlayerSettingsSnapshot.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Models/Playback/PlayerSettingsSnapshot.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Models/Profile/FollowingArtistItemDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Models/Profile/FollowingArtistItemDto.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Services/AuthApiClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Services/AuthApiClient.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Services/LibVlcAudioPlayerService.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.ArtistAndAvatar.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.ArtistAndAvatar.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.CollectionsAndLibrary.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.CollectionsAndLibrary.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.InitializationAndSearch.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.InitializationAndSearch.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.Playback.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.Playback.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.TrackCreationAndSettings.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.TrackCreationAndSettings.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowViewModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Views/LoginWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Views/LoginWindow.axaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Yarify.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/Yarify.sln.DotSettings.user" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +41,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/24dd1164ba47541cb1d3eb011e638e16953dbea3ae3f4dc208c3bbf3e96298a/ServiceCollectionServiceExtensions.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/291c9c915a83e25c0cda72573c6eae1872f2ef5c6203fe5f8a2cc8f803c7a/ObservablePropertyAttribute.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/485da50d43321b81edc28153271bdedb84943a243743e2deaa67a981587968/IConfiguration.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/a42ba4db448ed38dcb9fb39194c637a317a8281856b88e139e8a905ee6d12b/Guid.Windows.cs" root0="FORCE_HIGHLIGHTING" />
@@ -169,6 +189,7 @@
       <workItem from="1777201220378" duration="7739000" />
       <workItem from="1778146793543" duration="4940000" />
       <workItem from="1778168220207" duration="9243000" />
+      <workItem from="1778323126744" duration="8269000" />
     </task>
     <task id="LOCAL-00001" summary="Р РµР°Р»СЊРЅРѕ РЅРµ РґР°РєРёРЅСѓР» xd">
       <option name="closed" value="true" />
@@ -226,7 +247,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777211035328</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="m">
+      <option name="closed" value="true" />
+      <created>1778179014659</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1778179014659</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -243,7 +272,8 @@
     <MESSAGE value="РІС‹С„РІС„С‹" />
     <MESSAGE value="С‹С„" />
     <MESSAGE value="Почти конец" />
-    <option name="LAST_COMMIT_MESSAGE" value="Почти конец" />
+    <MESSAGE value="m" />
+    <option name="LAST_COMMIT_MESSAGE" value="m" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
