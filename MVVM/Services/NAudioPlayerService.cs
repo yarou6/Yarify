@@ -114,7 +114,6 @@ public sealed class NAudioPlayerService : IAudioPlayerService
 
     private void OnPlaybackStopped(object? sender, StoppedEventArgs e)
     {
-        // Ignore late callback from an old output instance.
         if (sender is not IWavePlayer output || !ReferenceEquals(output, _output))
             return;
 
