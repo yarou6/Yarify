@@ -165,6 +165,53 @@ public sealed class AuthApiClient
         return (items, error);
     }
 
+    public async Task<(IReadOnlyList<PlaylistListItemDto> Data, string? Error)> GetPublicPlaylistsAsync(string? query = null, int take = 50)
+    {
+        var normalizedTake = Math.Clamp(take, 1, 200);
+        var url = $"/api/player/public/playlists?take={normalizedTake}";
+        if (!string.IsNullOrWhiteSpace(query))
+            url += $"&query={Uri.EscapeDataString(query.Trim())}";
+
+        var (items, error) = await GetListAsync<PlaylistListItemDto>(url);
+        foreach (var item in items)
+            item.IsReadOnlyView = true;
+        NormalizePlaylists(items);
+        return (items, error);
+    }
+
+    public async Task<(PlaylistListItemDto? Data, IReadOnlyList<TrackListItemDto> Tracks, string? Error)> GetPublicPlaylistAsync(int playlistId)
+    {
+        var (details, error) = await GetAsync<PublicPlaylistDetailsDto>($"/api/player/public/playlists/{playlistId}");
+        if (details is null)
+            return (null, Array.Empty<TrackListItemDto>(), error);
+
+        var playlist = new PlaylistListItemDto
+        {
+            Id = details.Id,
+            Title = details.Title,
+            Description = details.Description,
+            IsPublic = true,
+            OwnerUserId = details.OwnerUserId,
+            OwnerName = details.OwnerName,
+            IsReadOnlyView = true,
+            CoverPath = details.CoverPath,
+            TracksCount = details.TracksCount
+        };
+
+        var tracks = details.Tracks
+            .OrderBy(t => t.Position)
+            .Select(t =>
+            {
+                t.Track.TrackOrder = t.Position;
+                return t.Track;
+            })
+            .ToList();
+
+        NormalizeTracks(tracks);
+        NormalizePlaylists(new[] { playlist });
+        return (playlist, tracks, null);
+    }
+
     public async Task<(PlaylistListItemDto? Data, string? Error)> CreatePlaylistAsync(CreatePlaylistRequestDto payload)
     {
         var (item, error) = await PostJsonAsync<CreatePlaylistRequestDto, PlaylistListItemDto>("/api/player/playlists", payload);
@@ -724,7 +771,6 @@ public sealed class AuthApiClient
             }
             catch
             {
-                // ignore and continue scanning other roots
             }
         }
 
@@ -846,6 +892,24 @@ public sealed class SearchArtistsResponseDto
     public IReadOnlyList<SearchArtistItemDto> Artists { get; set; } = Array.Empty<SearchArtistItemDto>();
 }
 
+public sealed class PublicPlaylistDetailsDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? CoverPath { get; set; }
+    public int TracksCount { get; set; }
+    public int OwnerUserId { get; set; }
+    public string OwnerName { get; set; } = string.Empty;
+    public IReadOnlyList<PublicPlaylistTrackItemDto> Tracks { get; set; } = Array.Empty<PublicPlaylistTrackItemDto>();
+}
+
+public sealed class PublicPlaylistTrackItemDto
+{
+    public int Position { get; set; }
+    public TrackListItemDto Track { get; set; } = new();
+}
+
 public sealed class SearchArtistItemDto
 {
     public int ArtistUserId { get; set; }
@@ -853,9 +917,6 @@ public sealed class SearchArtistItemDto
     public string? AvatarPath { get; set; }
     public int TracksCount { get; set; }
 }
-
-
-
 
 
 

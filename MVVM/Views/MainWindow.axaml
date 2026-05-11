@@ -409,7 +409,7 @@
                                 <ListBox IsVisible="{Binding IsSearchPlaylistsType}" ItemsSource="{Binding SearchResultPlaylists}" Classes="card-list">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="playback:PlaylistListItemDto">
-                                            <Border Classes="card" Padding="10">
+                                            <Border Classes="card" Padding="10" PointerPressed="SearchPlaylistCard_OnPointerPressed">
                                                 <Grid ColumnDefinitions="56,*" ColumnSpacing="10">
                                                     <Border Classes="cover-sm">
                                                         <Image Source="{Binding CoverImage}" Stretch="UniformToFill"/>
@@ -837,9 +837,10 @@
                                     <Border Background="#35FFFFFF" CornerRadius="999" Padding="10,4" HorizontalAlignment="Left">
                                         <TextBlock Text="{Binding PlaylistMetaText}" Foreground="#F2E7EB" FontSize="13"/>
                                     </Border>
+                                    <TextBlock Text="{Binding PlaylistDescriptionText}" IsVisible="{Binding HasPlaylistDescription}" Foreground="#F2E7EB" FontSize="13" TextWrapping="Wrap" MaxHeight="80"/>
                                     <WrapPanel>
-                                        <Button Content="Изменить" Command="{Binding OpenEditPlaylistModalCommand}" Margin="0,0,8,0"/>
-                                        <Button Content="Удалить" Command="{Binding DeletePlaylistCommand}"/>
+                                        <Button Content="Изменить" IsVisible="{Binding CanManageSelectedPlaylist}" Command="{Binding OpenEditPlaylistModalCommand}" Margin="0,0,8,0"/>
+                                        <Button Content="Удалить" IsVisible="{Binding CanManageSelectedPlaylist}" Command="{Binding DeletePlaylistCommand}"/>
                                     </WrapPanel>
                                 </StackPanel>
                             </Grid>
@@ -1164,7 +1165,6 @@
         </Border>
     </Grid>
 </Window>
-
 
 
 

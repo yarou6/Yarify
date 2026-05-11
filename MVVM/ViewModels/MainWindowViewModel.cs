@@ -15,6 +15,7 @@ namespace MVVM.ViewModels;
 
 public partial class MainWindowViewModel : BaseVM
 {
+    private readonly int _currentUserId;
     private readonly AuthSessionService _authSessionService;
     private readonly IAudioPlayerService _audioPlayer;
     private readonly PlayerSettingsStore _playerSettingsStore;
@@ -128,6 +129,7 @@ public partial class MainWindowViewModel : BaseVM
     private string _albumMetaText = string.Empty;
     private string _playlistTitleText = "Плейлист";
     private string _playlistMetaText = string.Empty;
+    private string _playlistDescriptionText = string.Empty;
     private string _playlistCoverPath = string.Empty;
     private Bitmap? _playlistCoverBitmap;
     private SubscriptionPlanDto? _selectedSubscriptionPlan;
@@ -139,6 +141,7 @@ public partial class MainWindowViewModel : BaseVM
         IAudioPlayerService audioPlayer, PlayerSettingsStore playerSettingsStore, Func<Task> onLogout)
     {
         _authSessionService = authSessionService;
+        _currentUserId = authData.UserId;
         _audioPlayer = audioPlayer;
         _playerSettingsStore = playerSettingsStore;
         _onLogout = onLogout;
@@ -190,13 +193,13 @@ public partial class MainWindowViewModel : BaseVM
         SavePlaylistModalCommand =
             new AsyncRelayCommand(SavePlaylistModalAsync, () => !string.IsNullOrWhiteSpace(NewPlaylistTitle));
         OpenCreatePlaylistModalCommand = new RelayCommand(OpenCreatePlaylistModal);
-        OpenEditPlaylistModalCommand = new RelayCommand(OpenEditPlaylistModal, () => SelectedPlaylist is not null);
+        OpenEditPlaylistModalCommand = new RelayCommand(OpenEditPlaylistModal, () => CanManageSelectedPlaylist);
         ClosePlaylistModalCommand = new RelayCommand(() => IsPlaylistModalOpen = false);
-        DeletePlaylistCommand = new AsyncRelayCommand(DeleteSelectedPlaylistAsync, () => SelectedPlaylist is not null);
+        DeletePlaylistCommand = new AsyncRelayCommand(DeleteSelectedPlaylistAsync, () => CanManageSelectedPlaylist);
         AddSelectedTrackToPlaylistCommand = new AsyncRelayCommand(AddSelectedTrackToPlaylistAsync,
-            () => SelectedTrack is not null && SelectedPlaylist is not null);
+            () => SelectedTrack is not null && CanManageSelectedPlaylist);
         RemovePlaylistTrackCommand = new AsyncRelayCommand(RemoveSelectedPlaylistTrackAsync,
-            () => SelectedPlaylistTrack is not null && SelectedPlaylist is not null);
+            () => SelectedPlaylistTrack is not null && CanManageSelectedPlaylist);
 
         OpenSelectedArtistCommand =
             new AsyncRelayCommand(OpenSelectedArtistAsync, () => (SelectedTrack ?? CurrentTrack) is not null);
@@ -374,7 +377,7 @@ public partial class MainWindowViewModel : BaseVM
             if (!SetProperty(ref _selectedPlaylist, value, RaiseCanExecutes))
                 return;
             UpdatePlaylistHeaderFromSelection();
-            _ = LoadPlaylistTracksAsync();
+            _ = IsSelectedPlaylistReadOnly ? LoadPublicPlaylistTracksAsync() : LoadPlaylistTracksAsync();
         }
     }
 
@@ -1023,6 +1026,12 @@ public partial class MainWindowViewModel : BaseVM
         private set => SetProperty(ref _playlistMetaText, value);
     }
 
+    public string PlaylistDescriptionText
+    {
+        get => _playlistDescriptionText;
+        private set => SetProperty(ref _playlistDescriptionText, value);
+    }
+
     public int AlbumTotalPlays => AlbumTracks.Sum(t => Math.Max(0, t.PlayCount));
     public string AlbumTotalPlaysText => $"{AlbumTotalPlays:N0} прослушиваний";
 
@@ -1078,6 +1087,9 @@ public partial class MainWindowViewModel : BaseVM
 
     public object? PlaylistCoverImage => (object?)_playlistCoverBitmap ??
                                          (string.IsNullOrWhiteSpace(PlaylistCoverPath) ? null : PlaylistCoverPath);
+    public bool IsSelectedPlaylistReadOnly => SelectedPlaylist?.IsReadOnlyView == true;
+    public bool CanManageSelectedPlaylist => SelectedPlaylist is not null && !IsSelectedPlaylistReadOnly;
+    public bool HasPlaylistDescription => !string.IsNullOrWhiteSpace(PlaylistDescriptionText);
 
     public int VolumePercent
     {

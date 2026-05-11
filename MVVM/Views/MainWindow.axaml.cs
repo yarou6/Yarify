@@ -111,6 +111,21 @@ public partial class MainWindow : Window
         await vm.OpenArtistByIdFromUiAsync(artist.ArtistUserId);
     }
 
+    private async void SearchPlaylistCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control { DataContext: PlaylistListItemDto playlist } control)
+            return;
+
+        var point = e.GetCurrentPoint(control);
+        if (point.Properties.PointerUpdateKind != PointerUpdateKind.LeftButtonPressed)
+            return;
+
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        await vm.OpenPlaylistFromSearchAsync(playlist);
+    }
+
     #pragma warning disable CS0618
     private void PlaylistDropTarget_OnDragOver(object? sender, DragEventArgs e)
     {

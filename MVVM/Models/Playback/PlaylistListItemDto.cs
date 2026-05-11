@@ -8,6 +8,9 @@ public sealed class PlaylistListItemDto
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsPublic { get; set; }
+    public int OwnerUserId { get; set; }
+    public string? OwnerName { get; set; }
+    public bool IsReadOnlyView { get; set; }
     public string? CoverPath { get; set; }
     public Bitmap? CoverBitmap { get; set; }
     public int TracksCount { get; set; }

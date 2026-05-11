@@ -348,16 +348,42 @@ public partial class MainWindowViewModel
             });
         }
 
-        var publicPlaylists = Playlists.Where(p => p.IsPublic);
-        var playlists = string.IsNullOrWhiteSpace(needle)
-            ? new ObservableCollection<PlaylistListItemDto>(publicPlaylists)
-            : new ObservableCollection<PlaylistListItemDto>(publicPlaylists.Where(p =>
-                p.Title.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrWhiteSpace(p.Description) &&
-                 p.Description.Contains(needle, StringComparison.OrdinalIgnoreCase))));
+        var ownPublicPlaylists = Playlists
+            .Where(p => p.IsPublic)
+            .Where(p => string.IsNullOrWhiteSpace(needle) ||
+                        p.Title.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrWhiteSpace(p.Description) &&
+                         p.Description.Contains(needle, StringComparison.OrdinalIgnoreCase)))
+            .Select(p =>
+            {
+                p.OwnerUserId = _currentUserId;
+                p.OwnerName = DisplayName;
+                p.IsReadOnlyView = false;
+                return p;
+            })
+            .ToList();
 
-        foreach (var playlist in playlists)
-            SearchResultPlaylists.Add(playlist);
+        var (publicFromApi, playlistsError) = await _authSessionService.ApiClient.GetPublicPlaylistsAsync(needle, 80);
+        if (string.IsNullOrWhiteSpace(playlistsError))
+        {
+            var merged = ownPublicPlaylists
+                .Concat(publicFromApi.Where(p => p.OwnerUserId != _currentUserId))
+                .GroupBy(p => p.Id)
+                .Select(g => g.First())
+                .OrderBy(p => p.Title, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var playlist in merged)
+            {
+                playlist.IsReadOnlyView = playlist.OwnerUserId != _currentUserId;
+                SearchResultPlaylists.Add(playlist);
+            }
+        }
+        else
+        {
+            foreach (var playlist in ownPublicPlaylists)
+                SearchResultPlaylists.Add(playlist);
+        }
 
         NotifySearchType();
     }

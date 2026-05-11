@@ -1,0 +1,8 @@
+C:\Users\User\RiderProjects\Yarify\MVVM\obj_temp\Debug\net8.0\MVVM.csproj.AssemblyReference.cache
+C:\Users\User\RiderProjects\Yarify\MVVM\obj_temp\Debug\net8.0\Avalonia\Resources.Inputs.cache
+C:\Users\User\RiderProjects\Yarify\MVVM\obj_temp\Debug\net8.0\Avalonia\resources
+C:\Users\User\RiderProjects\Yarify\MVVM\obj_temp\Debug\net8.0\MVVM.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\RiderProjects\Yarify\MVVM\obj_temp\Debug\net8.0\MVVM.AssemblyInfoInputs.cache
+C:\Users\User\RiderProjects\Yarify\MVVM\obj_temp\Debug\net8.0\MVVM.AssemblyInfo.cs
+C:\Users\User\RiderProjects\Yarify\MVVM\obj_temp\Debug\net8.0\MVVM.csproj.CoreCompileInputs.cache
+C:\Users\User\RiderProjects\Yarify\MVVM\obj_temp\Debug\net8.0\MVVM.sourcelink.json

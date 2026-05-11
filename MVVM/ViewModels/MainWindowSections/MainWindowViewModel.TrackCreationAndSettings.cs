@@ -268,7 +268,6 @@ public partial class MainWindowViewModel
         }
         catch
         {
-            // ignored: unsupported codec/path, user can set duration manually.
         }
     }
 

@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
@@ -9,7 +8,6 @@ using MVVM.Models.Auth;
 using MVVM.Services;
 using MVVM.ViewModels;
 using MVVM.Views;
-using System.Linq;
 
 namespace MVVM;
 

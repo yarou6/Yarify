@@ -133,6 +133,43 @@ public partial class MainWindowViewModel
         UpdatePlaylistTrackPresenceFlags();
     }
 
+    private async Task LoadPublicPlaylistTracksAsync()
+    {
+        var selectedPlaylist = SelectedPlaylist;
+        if (selectedPlaylist is null)
+        {
+            PlaylistTracks.Clear();
+            return;
+        }
+
+        var (publicPlaylist, publicTracks, error) = await _authSessionService.ApiClient.GetPublicPlaylistAsync(selectedPlaylist.Id);
+        if (!string.IsNullOrWhiteSpace(error) || publicPlaylist is null)
+        {
+            Status = $"Ошибка публичного плейлиста: {error}";
+            return;
+        }
+
+        selectedPlaylist.TracksCount = publicPlaylist.TracksCount;
+        selectedPlaylist.Description = publicPlaylist.Description;
+        selectedPlaylist.OwnerName = publicPlaylist.OwnerName;
+        selectedPlaylist.OwnerUserId = publicPlaylist.OwnerUserId;
+        selectedPlaylist.CoverPath = publicPlaylist.CoverPath;
+        selectedPlaylist.CoverBitmap = publicPlaylist.CoverBitmap;
+        selectedPlaylist.IsReadOnlyView = publicPlaylist.OwnerUserId != _currentUserId;
+
+        await HydrateAlbumTitlesAsync(publicTracks);
+        PlaylistTracks.Clear();
+        var order = 1;
+        foreach (var item in publicTracks)
+        {
+            item.TrackOrder = order++;
+            PlaylistTracks.Add(item);
+        }
+
+        SelectedPlaylistTrack = PlaylistTracks.FirstOrDefault();
+        UpdatePlaylistHeaderFromSelection();
+    }
+
     private async Task HydrateAlbumTitlesAsync(IEnumerable<TrackListItemDto> tracks)
     {
         var list = tracks.ToList();
@@ -521,17 +558,28 @@ public partial class MainWindowViewModel
         {
             PlaylistTitleText = "Плейлист";
             PlaylistMetaText = "Выбери или создай плейлист";
+            PlaylistDescriptionText = string.Empty;
             PlaylistCoverPath = string.Empty;
             _playlistCoverBitmap = null;
             OnPropertyChanged(nameof(PlaylistCoverImage));
+            OnPropertyChanged(nameof(CanManageSelectedPlaylist));
+            OnPropertyChanged(nameof(IsSelectedPlaylistReadOnly));
+            OnPropertyChanged(nameof(HasPlaylistDescription));
             return;
         }
 
         PlaylistTitleText = SelectedPlaylist.Title;
-        PlaylistMetaText = $"{Math.Max(0, PlaylistTracks.Count)} треков";
+        var ownerSuffix = SelectedPlaylist.IsReadOnlyView && !string.IsNullOrWhiteSpace(SelectedPlaylist.OwnerName)
+            ? $" • {SelectedPlaylist.OwnerName}"
+            : string.Empty;
+        PlaylistMetaText = $"{Math.Max(0, PlaylistTracks.Count)} треков{ownerSuffix}";
+        PlaylistDescriptionText = SelectedPlaylist.Description ?? string.Empty;
         PlaylistCoverPath = SelectedPlaylist.CoverPath ?? string.Empty;
         _playlistCoverBitmap = SelectedPlaylist.CoverBitmap;
         OnPropertyChanged(nameof(PlaylistCoverImage));
+        OnPropertyChanged(nameof(CanManageSelectedPlaylist));
+        OnPropertyChanged(nameof(IsSelectedPlaylistReadOnly));
+        OnPropertyChanged(nameof(HasPlaylistDescription));
     }
 
     private async Task LoadHomeLibraryHighlightsAsync()
@@ -727,6 +775,34 @@ public partial class MainWindowViewModel
         }
 
         await OpenAlbumByIdAsync(collection.Id);
+    }
+
+    public async Task OpenPlaylistFromSearchAsync(PlaylistListItemDto playlist)
+    {
+        if (playlist is null)
+            return;
+
+        PlaylistListItemDto selected;
+        if (!playlist.IsReadOnlyView)
+        {
+            selected = Playlists.FirstOrDefault(p => p.Id == playlist.Id) ?? playlist;
+            selected.IsReadOnlyView = false;
+        }
+        else
+        {
+            var (publicPlaylist, _, error) = await _authSessionService.ApiClient.GetPublicPlaylistAsync(playlist.Id);
+            if (!string.IsNullOrWhiteSpace(error) || publicPlaylist is null)
+            {
+                Status = $"Ошибка открытия плейлиста: {error}";
+                return;
+            }
+
+            publicPlaylist.IsReadOnlyView = publicPlaylist.OwnerUserId != _currentUserId;
+            selected = publicPlaylist;
+        }
+
+        SelectedPlaylist = selected;
+        ActiveSection = "playlists";
     }
 
     private void UpdatePlaylistTrackPresenceFlags()
