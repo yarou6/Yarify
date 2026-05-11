@@ -124,6 +124,7 @@ public partial class MainWindow : Window
             return;
 
         await vm.OpenPlaylistFromSearchAsync(playlist);
+        
     }
 
     #pragma warning disable CS0618
