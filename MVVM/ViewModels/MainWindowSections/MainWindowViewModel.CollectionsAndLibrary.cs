@@ -630,7 +630,7 @@ public partial class MainWindowViewModel
                 {
                     Kind = "album",
                     Id = albumId,
-                    Title = string.IsNullOrWhiteSpace(track.AlbumTitle) ? $"Альбом #{albumId}" : track.AlbumTitle!,
+                    Title = string.IsNullOrWhiteSpace(track.AlbumTitle) ? $"Альбом {albumId}" : track.AlbumTitle!,
                     Subtitle = "Недавно прослушано",
                     CoverPath = track.CoverPath,
                     CoverBitmap = track.CoverBitmap
@@ -748,7 +748,7 @@ public partial class MainWindowViewModel
                 Kind = "album",
                 Id = item.SourceId.Value,
                 Title = album?.Title
-                    ?? (!string.IsNullOrWhiteSpace(item.Track?.AlbumTitle) ? item.Track.AlbumTitle! : $"Альбом #{item.SourceId.Value}"),
+                    ?? (!string.IsNullOrWhiteSpace(item.Track?.AlbumTitle) ? item.Track.AlbumTitle! : $"Альбом {item.SourceId.Value}"),
                 Subtitle = "Альбом",
                 CoverPath = album?.CoverPath ?? item.Track?.CoverPath,
                 CoverBitmap = album?.CoverBitmap ?? item.Track?.CoverBitmap

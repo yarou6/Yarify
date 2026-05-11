@@ -341,7 +341,7 @@ public partial class MainWindowViewModel
             SearchResultAlbums.Add(new AlbumListItemDto
             {
                 Id = albumGroup.Key,
-                Title = !string.IsNullOrWhiteSpace(first.AlbumTitle) ? first.AlbumTitle! : $"Альбом #{albumGroup.Key}",
+                Title = !string.IsNullOrWhiteSpace(first.AlbumTitle) ? first.AlbumTitle! : $"Альбом {albumGroup.Key}",
                 CoverPath = albumCover,
                 CoverBitmap = albumGroup.Select(t => t.CoverBitmap).FirstOrDefault(b => b is not null),
                 PlayCount = albumGroup.Sum(t => Math.Max(0, t.PlayCount))

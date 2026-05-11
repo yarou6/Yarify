@@ -174,7 +174,7 @@ public partial class MainWindowViewModel : BaseVM
         LanguageOptions = new ObservableCollection<string> { "Русский (Russian)", "English (US)" };
         SearchTypeOptions = new ObservableCollection<string> { "Все", "Исполнители", "Треки", "Альбомы", "Плейлисты" };
 
-        DisplayName = $"Пользователь #{authData.UserId}";
+        DisplayName = $"Пользователь {authData.UserId}";
         RoleTitle = authData.RoleTitle;
 
         RefreshTracksCommand = new AsyncRelayCommand(LoadTracksAsync, () => !IsBusy);

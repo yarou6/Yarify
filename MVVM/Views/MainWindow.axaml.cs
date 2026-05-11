@@ -127,7 +127,6 @@ public partial class MainWindow : Window
         
     }
 
-    #pragma warning disable CS0618
     private void PlaylistDropTarget_OnDragOver(object? sender, DragEventArgs e)
     {
         if (TryGetSongId(e.Data, out _))
@@ -190,8 +189,6 @@ public partial class MainWindow : Window
 
         return int.TryParse(raw, out songId);
     }
-    #pragma warning restore CS0618
-
     private async void BrowseAvatar_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)

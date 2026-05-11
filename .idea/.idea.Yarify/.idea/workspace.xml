@@ -8,16 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="27637ad2-15bb-4656-97b4-91658e85949a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Yarify/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Yarify/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVVM/App.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/App.axaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVVM/App.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/App.axaml.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVVM/Models/Playback/PlaylistListItemDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Models/Playback/PlaylistListItemDto.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVVM/Services/AuthApiClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Services/AuthApiClient.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.CollectionsAndLibrary.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.CollectionsAndLibrary.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.InitializationAndSearch.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.InitializationAndSearch.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.TrackCreationAndSettings.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.TrackCreationAndSettings.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowViewModel.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -181,7 +174,7 @@
       <workItem from="1778146793543" duration="4940000" />
       <workItem from="1778168220207" duration="9243000" />
       <workItem from="1778323126744" duration="10116000" />
-      <workItem from="1778502988950" duration="7688000" />
+      <workItem from="1778502988950" duration="7995000" />
     </task>
     <task id="LOCAL-00001" summary="Р РµР°Р»СЊРЅРѕ РЅРµ РґР°РєРёРЅСѓР» xd">
       <option name="closed" value="true" />
@@ -263,7 +256,23 @@
       <option name="project" value="LOCAL" />
       <updated>1778333004436</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="asd">
+      <option name="closed" value="true" />
+      <created>1778514512761</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1778514512761</updated>
+    </task>
+    <task id="LOCAL-00012" summary="s">
+      <option name="closed" value="true" />
+      <created>1778514566052</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1778514566052</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -283,7 +292,9 @@
     <MESSAGE value="m" />
     <MESSAGE value="qq" />
     <MESSAGE value="в" />
-    <option name="LAST_COMMIT_MESSAGE" value="в" />
+    <MESSAGE value="asd" />
+    <MESSAGE value="s" />
+    <option name="LAST_COMMIT_MESSAGE" value="s" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
