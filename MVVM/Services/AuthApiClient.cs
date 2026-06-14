@@ -34,6 +34,12 @@ public sealed class AuthApiClient
         };
     }
 
+    public AuthApiClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+    }
+
+    // Обновляет состояние и приводит данные к нужному виду.
     public void SetAccessToken(string? accessToken)
     {
         _httpClient.DefaultRequestHeaders.Authorization = string.IsNullOrWhiteSpace(accessToken)
@@ -59,6 +65,7 @@ public sealed class AuthApiClient
         return await PostJsonAsync<RefreshTokenRequestDto, AuthResponseDto>("/api/session/refresh", payload);
     }
 
+    // Выполняет внутреннюю логику метода.
     public async Task LogoutAsync(string refreshToken)
     {
         var payload = new RefreshTokenRequestDto { RefreshToken = refreshToken };
@@ -125,9 +132,11 @@ public sealed class AuthApiClient
         return (tracks, error);
     }
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> LikeTrackAsync(int songId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, $"/api/player/liked/{songId}");
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> UnlikeTrackAsync(int songId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Delete, $"/api/player/liked/{songId}");
 
@@ -140,21 +149,27 @@ public sealed class AuthApiClient
         return (items, error);
     }
 
+    // Создает или добавляет новый элемент.
     public async Task<string?> AddToQueueAsync(int songId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, $"/api/player/queue/{songId}");
 
+    // Создает или добавляет новый элемент.
     public async Task<string?> AddToQueueNextAsync(int songId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, $"/api/player/queue/{songId}/next");
 
+    // Удаляет элемент из текущего контекста.
     public async Task<string?> RemoveFromQueueAsync(long queueId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Delete, $"/api/player/queue/{queueId}");
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> MoveQueueUpAsync(long queueId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, $"/api/player/queue/{queueId}/move-up");
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> MoveQueueDownAsync(long queueId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, $"/api/player/queue/{queueId}/move-down");
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> ClearQueueAsync() =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, "/api/player/queue/clear");
 
@@ -227,9 +242,11 @@ public sealed class AuthApiClient
             NormalizePlaylists(new[] { item });
         return (item, error);
     }
+    // Удаляет элемент из текущего контекста.
     public async Task<string?> DeletePlaylistAsync(int playlistId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Delete, $"/api/player/playlists/{playlistId}");
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> UploadPlaylistCoverAsync(int playlistId, string filePath) =>
         await UploadLibraryFileAsync($"/api/player/playlists/{playlistId}/upload-cover", filePath);
 
@@ -240,9 +257,11 @@ public sealed class AuthApiClient
         return (tracks, error);
     }
 
+    // Создает или добавляет новый элемент.
     public async Task<string?> AddTrackToPlaylistAsync(int playlistId, int songId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Post, $"/api/player/playlists/{playlistId}/tracks/{songId}");
 
+    // Удаляет элемент из текущего контекста.
     public async Task<string?> RemoveTrackFromPlaylistAsync(int playlistId, int songId) =>
         await SendWithoutResponseBodyAsync(HttpMethod.Delete, $"/api/player/playlists/{playlistId}/tracks/{songId}");
 
@@ -252,6 +271,7 @@ public sealed class AuthApiClient
     public async Task<(ProfileMeDto? Data, string? Error)> UpdateProfileMeAsync(UpdateProfileRequestDto payload) =>
         await PutJsonAsync<UpdateProfileRequestDto, ProfileMeDto>("/api/profile/me", payload);
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> UploadProfileAvatarAsync(string filePath)
     {
         try
@@ -277,9 +297,11 @@ public sealed class AuthApiClient
         }
     }
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> ChangePasswordAsync(ChangePasswordRequestDto payload) =>
         await PatchJsonWithoutResponseAsync("/api/users-panel/change-password", payload);
 
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task<string?> SetArtistRoleAsync(UsersPanelRoleRequestDto payload) =>
         await PatchJsonWithoutResponseAsync("/api/users-panel/role", payload);
 
@@ -307,6 +329,7 @@ public sealed class AuthApiClient
     public async Task<(UserSubscriptionDto? Data, string? Error)> ChangeMySubscriptionAsync(ChangeSubscriptionRequestDto payload) =>
         await PutJsonAsync<ChangeSubscriptionRequestDto, UserSubscriptionDto>("/api/subscriptions/me", payload);
 
+    // Обновляет состояние и приводит данные к нужному виду.
     public string? ResolveAssetUrl(string? path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -390,6 +413,7 @@ public sealed class AuthApiClient
         return (data?.EventId, error);
     }
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> ReportListeningProgressAsync(long eventId, int playedMs, DateTime? endedAt = null)
     {
         var payload = new ListeningEventProgressRequestDto
@@ -400,6 +424,7 @@ public sealed class AuthApiClient
         return await PatchJsonWithoutResponseAsync($"/api/listening-events/{eventId}/progress", payload);
     }
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> CompleteListeningEventAsync(long eventId, int playedMs, bool completed, DateTime? endedAt = null)
     {
         var payload = new CompleteListeningEventRequestDto
@@ -420,12 +445,15 @@ public sealed class AuthApiClient
     public async Task<(ManageSongDto? Data, string? Error)> CreateMySongAsync(CreateSongRequestDto payload) =>
         await PostJsonAsync<CreateSongRequestDto, ManageSongDto>("/api/library/my/songs", payload);
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> UploadSongAudioAsync(int songId, string filePath) =>
         await UploadLibraryFileAsync($"/api/library/my/songs/{songId}/upload-audio", filePath);
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> UploadSongCoverAsync(int songId, string filePath) =>
         await UploadLibraryFileAsync($"/api/library/my/songs/{songId}/upload-cover", filePath);
 
+    // Выполняет внутреннюю логику метода.
     public async Task<string?> UploadAlbumCoverAsync(int albumId, string filePath) =>
         await UploadLibraryFileAsync($"/api/library/my/albums/{albumId}/upload-cover", filePath);
 
@@ -492,6 +520,7 @@ public sealed class AuthApiClient
         }
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task<string?> SendWithoutResponseBodyAsync(HttpMethod method, string url)
     {
         try
@@ -546,6 +575,7 @@ public sealed class AuthApiClient
         }
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task<string?> UploadLibraryFileAsync(string endpoint, string filePath)
     {
         try
@@ -568,6 +598,7 @@ public sealed class AuthApiClient
         }
     }
 
+    // Выполняет внутреннюю логику метода.
     private static async Task<string> ReadErrorAsync(HttpResponseMessage response)
     {
         var text = await response.Content.ReadAsStringAsync();
@@ -601,6 +632,7 @@ public sealed class AuthApiClient
         public Dictionary<string, string[]>? Errors { get; set; }
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void NormalizeTracks(IEnumerable<TrackListItemDto> tracks)
     {
         foreach (var track in tracks)
@@ -611,6 +643,7 @@ public sealed class AuthApiClient
         }
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void NormalizePlaylists(IEnumerable<PlaylistListItemDto> playlists)
     {
         foreach (var playlist in playlists)
@@ -620,6 +653,7 @@ public sealed class AuthApiClient
         }
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private string? ResolveMediaDisplaySource(string? path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -664,6 +698,7 @@ public sealed class AuthApiClient
         return ResolveAssetUrl(normalizedInput);
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private string? ResolvePlaybackSource(string? path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -683,6 +718,7 @@ public sealed class AuthApiClient
         return ResolveAssetUrl(normalizedInput);
     }
 
+    // Выполняет внутреннюю логику метода.
     private static string? TryResolveLocalUploadPath(string relativeOrName)
     {
         var normalized = relativeOrName.TrimStart('/', '\\')
@@ -725,6 +761,7 @@ public sealed class AuthApiClient
         return null;
     }
 
+    // Выполняет внутреннюю логику метода.
     private static string? TryResolveByFileName(string rawPath)
     {
         var fileName = Path.GetFileName(rawPath);
@@ -780,6 +817,7 @@ public sealed class AuthApiClient
         return null;
     }
 
+    // Выполняет внутреннюю логику метода.
     private static string? TryRepairMojibakePath(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -808,6 +846,7 @@ public sealed class AuthApiClient
         return null;
     }
 
+    // Выполняет внутреннюю логику метода.
     private static string? TryReencode(string input, Encoding source, Encoding target)
     {
         try
@@ -821,6 +860,7 @@ public sealed class AuthApiClient
         }
     }
 
+    // Готовит и возвращает нужные данные.
     private static Encoding? TryGetEncoding(int codePage)
     {
         try
@@ -834,6 +874,7 @@ public sealed class AuthApiClient
         }
     }
 
+    // Выполняет внутреннюю логику метода.
     private static Bitmap? TryLoadBitmap(string? source)
     {
         if (string.IsNullOrWhiteSpace(source))

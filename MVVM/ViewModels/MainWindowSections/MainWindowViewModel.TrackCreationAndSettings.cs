@@ -15,6 +15,7 @@ namespace MVVM.ViewModels;
 
 public partial class MainWindowViewModel
 {
+    // Создает или добавляет новый элемент.
     private void AddTrackAction()
     {
         if (!HasArtistName)
@@ -27,6 +28,7 @@ public partial class MainWindowViewModel
         OpenAddTrackModal();
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void OpenAddTrackModal()
     {
         _draftAlbumId = null;
@@ -51,6 +53,7 @@ public partial class MainWindowViewModel
         IsAddTrackModalOpen = true;
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void CloseAddTrackModal()
     {
         IsAddTrackModalOpen = false;
@@ -60,6 +63,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(AddTrackProgressText));
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private bool CanSubmitAddTrack()
     {
         if (IsBusy || string.IsNullOrWhiteSpace(AddTrackTitleInput))
@@ -68,6 +72,7 @@ public partial class MainWindowViewModel
         return int.TryParse(AddTrackDurationInput.Trim(), out var duration) && duration is >= 1 and <= 7200;
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task SubmitAddTrackAsync()
     {
         if (!int.TryParse(AddTrackDurationInput.Trim(), out var durationSec) || durationSec is < 1 or > 7200)
@@ -223,6 +228,7 @@ public partial class MainWindowViewModel
         Status = "Трек добавлен. Окно оставлено открытым для следующего трека.";
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private static bool IsExistingLocalFile(string? path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -238,6 +244,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Готовит и возвращает нужные данные.
     private void RefreshFilteredAddTrackGenres()
     {
         var needle = AddTrackGenreSearchInput.Trim();
@@ -251,6 +258,7 @@ public partial class MainWindowViewModel
             FilteredAddTrackGenres.Add(genre);
     }
 
+    // Выполняет внутреннюю логику метода.
     private void TryApplyDurationFromLocalAudio(string? filePath)
     {
         if (AddTrackIsOnlineSource || string.IsNullOrWhiteSpace(filePath))
@@ -271,6 +279,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private bool CanChangePassword()
     {
         return !IsBusy
@@ -279,6 +288,7 @@ public partial class MainWindowViewModel
                && !string.IsNullOrWhiteSpace(ConfirmPasswordInput);
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task ChangePasswordAsync()
     {
         var error = await _authSessionService.ApiClient.ChangePasswordAsync(new ChangePasswordRequestDto
@@ -300,11 +310,13 @@ public partial class MainWindowViewModel
         Status = "Пароль успешно изменен.";
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private bool CanSaveArtistName()
     {
         return !IsBusy && !string.IsNullOrWhiteSpace(SettingsArtistNameInput);
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private async Task SaveArtistNameAsync()
     {
         var artistName = SettingsArtistNameInput.Trim();
@@ -347,16 +359,19 @@ public partial class MainWindowViewModel
         Status = "Роль артиста активирована.";
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private bool CanSaveProfileChanges()
     {
         return !IsBusy && !string.IsNullOrWhiteSpace(EditDisplayName);
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private bool CanSaveContacts()
     {
         return !IsBusy && !string.IsNullOrWhiteSpace(EditEmailInput);
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private async Task SaveContactsAsync()
     {
         var email = EditEmailInput.Trim();
@@ -385,6 +400,7 @@ public partial class MainWindowViewModel
         Status = "Контакты обновлены.";
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private async Task SaveProfileChangesAsync()
     {
         var displayName = EditDisplayName.Trim();
@@ -430,6 +446,7 @@ public partial class MainWindowViewModel
         Status = "Профиль успешно обновлен.";
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task LogoutAsync()
     {
         await SaveSettingsAsync();
@@ -451,6 +468,7 @@ public partial class MainWindowViewModel
         LastTrackId = CurrentTrack?.Id ?? SelectedTrack?.Id ?? 0
     });
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void UpdatePlayback()
     {
         OnPropertyChanged(nameof(CurrentTrackTitle));
@@ -462,6 +480,7 @@ public partial class MainWindowViewModel
         RaiseCanExecutes();
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void UpdateTime()
     {
         _isSeeking = true;
@@ -481,6 +500,7 @@ public partial class MainWindowViewModel
         _ = ReportListeningProgressAsync();
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     private void RaiseCanExecutes()
     {
         RefreshTracksCommand.RaiseCanExecuteChanged();

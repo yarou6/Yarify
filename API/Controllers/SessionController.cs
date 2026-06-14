@@ -22,6 +22,7 @@ public class SessionController : ControllerBase
 
     [HttpPost("refresh")]
     [AllowAnonymous]
+    // Получает данные и обновляет сессию пользователя.
     public async Task<ActionResult<AuthResponseDto>> Refresh(RefreshTokenRequestDto request)
     {
         var tokenHash = _authTokenService.HashToken(request.RefreshToken);

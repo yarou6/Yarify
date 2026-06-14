@@ -22,6 +22,7 @@ public class LyricsController : ControllerBase
     }
 
     [HttpGet("song/{songId:int}")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<LyricItemDto>>> GetSongLyrics(int songId)
     {
         var exists = await _db.Songs.AnyAsync(s => s.Id == songId && (s.IsActive == null || s.IsActive == true));
@@ -46,6 +47,7 @@ public class LyricsController : ControllerBase
     }
 
     [HttpGet("song/{songId:int}/{languageCode}")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<LyricItemDto>> GetSongLyric(int songId, string languageCode)
     {
         var lang = (languageCode ?? string.Empty).Trim().ToLowerInvariant();
@@ -71,6 +73,7 @@ public class LyricsController : ControllerBase
 
     [HttpPut("song/{songId:int}")]
     [Authorize(Roles = "Artist,Admin")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<LyricItemDto>> UpsertSongLyric(int songId, [FromBody] UpsertLyricRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -124,6 +127,7 @@ public class LyricsController : ControllerBase
 
     [HttpDelete("song/{songId:int}/{languageCode}")]
     [Authorize(Roles = "Artist,Admin")]
+    // Удаляет элемент из текущего контекста.
     public async Task<ActionResult> DeleteSongLyric(int songId, string languageCode)
     {
         var userId = _userContext.GetRequiredUserId(User);

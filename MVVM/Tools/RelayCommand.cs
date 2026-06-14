@@ -1,4 +1,4 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace MVVM.Tools;
 
@@ -36,6 +36,7 @@ public sealed class AsyncRelayCommand : ICommand
 
     public event EventHandler? CanExecuteChanged;
 
+    // Проверяет условие и возвращает результат проверки.
     public bool CanExecute(object? parameter)
     {
         if (_isExecuting)
@@ -44,6 +45,7 @@ public sealed class AsyncRelayCommand : ICommand
         return _canExecute?.Invoke() ?? true;
     }
 
+    // Выполняет внутреннюю логику метода.
     public async void Execute(object? parameter)
     {
         if (!CanExecute(parameter))

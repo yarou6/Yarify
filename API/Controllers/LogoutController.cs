@@ -25,6 +25,7 @@ public class LogoutController : ControllerBase
 
     [HttpPost]
     [AllowAnonymous]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> Logout(RefreshTokenRequestDto request)
     {
         var tokenHash = _authTokenService.HashToken(request.RefreshToken);
@@ -42,6 +43,7 @@ public class LogoutController : ControllerBase
 
     [HttpPost("all")]
     [Authorize]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> LogoutAll()
     {
         var userId = _userContextService.GetRequiredUserId(User);

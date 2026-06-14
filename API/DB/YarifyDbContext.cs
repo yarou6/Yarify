@@ -51,7 +51,10 @@ public partial class YarifyDbContext : DbContext
     public virtual DbSet<Userplaybacksetting> Userplaybacksettings { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySql("server=localhost;user=root;database=YarifyDB", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
+    {
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder.UseMySql("server=localhost;user=root;database=YarifyDB", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

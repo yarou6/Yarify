@@ -15,6 +15,7 @@ namespace MVVM.ViewModels;
 
 public partial class MainWindowViewModel
 {
+    // Готовит и возвращает нужные данные.
     private async Task LoadLikedAsync()
     {
         var (items, error) = await _authSessionService.ApiClient.GetLikedTracksAsync();
@@ -43,6 +44,7 @@ public partial class MainWindowViewModel
         await BuildPersonalRecommendationsAsync();
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadQueueAsync()
     {
         var (items, error) = await _authSessionService.ApiClient.GetQueueAsync();
@@ -69,6 +71,7 @@ public partial class MainWindowViewModel
         UpdateNowPlayingPreview();
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadPlaylistsAsync()
     {
         var (items, error) = await _authSessionService.ApiClient.GetPlaylistsAsync();
@@ -103,6 +106,7 @@ public partial class MainWindowViewModel
         await BuildPersonalRecommendationsAsync();
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadPlaylistTracksAsync()
     {
         var selectedPlaylist = SelectedPlaylist;
@@ -133,6 +137,7 @@ public partial class MainWindowViewModel
         UpdatePlaylistTrackPresenceFlags();
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadPublicPlaylistTracksAsync()
     {
         var selectedPlaylist = SelectedPlaylist;
@@ -170,6 +175,7 @@ public partial class MainWindowViewModel
         UpdatePlaylistHeaderFromSelection();
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task HydrateAlbumTitlesAsync(IEnumerable<TrackListItemDto> tracks)
     {
         var list = tracks.ToList();
@@ -199,6 +205,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task LikeSelectedTrackAsync()
     {
         if (SelectedTrack is null) return;
@@ -209,6 +216,7 @@ public partial class MainWindowViewModel
         await LoadLikedAsync();
     }
 
+    // Создает или добавляет новый элемент.
     private async Task AddSelectedToQueueAsync()
     {
         if (SelectedTrack is null) return;
@@ -217,6 +225,7 @@ public partial class MainWindowViewModel
         await LoadQueueAsync();
     }
 
+    // Создает или добавляет новый элемент.
     public async Task AddTrackToQueueNextAsync(TrackListItemDto track)
     {
         var error = await _authSessionService.ApiClient.AddToQueueNextAsync(track.Id);
@@ -230,6 +239,7 @@ public partial class MainWindowViewModel
         Status = $"Трек \"{track.Title}\" будет проигран следующим.";
     }
 
+    // Удаляет элемент из текущего контекста.
     private async Task RemoveSelectedQueueAsync()
     {
         if (SelectedQueueItem is null) return;
@@ -238,6 +248,7 @@ public partial class MainWindowViewModel
         await LoadQueueAsync();
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task ClearQueueAsync()
     {
         var error = await _authSessionService.ApiClient.ClearQueueAsync();
@@ -245,6 +256,7 @@ public partial class MainWindowViewModel
         await LoadQueueAsync();
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task MoveSelectedQueueUpAsync()
     {
         if (SelectedQueueItem is null) return;
@@ -253,6 +265,7 @@ public partial class MainWindowViewModel
         await LoadQueueAsync();
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task MoveSelectedQueueDownAsync()
     {
         if (SelectedQueueItem is null) return;
@@ -261,6 +274,7 @@ public partial class MainWindowViewModel
         await LoadQueueAsync();
     }
 
+    // Создает или добавляет новый элемент.
     private async Task CreatePlaylistAsync()
     {
         var localCoverPath = IsExistingLocalFile(NewPlaylistCoverPath) ? NewPlaylistCoverPath.Trim() : null;
@@ -296,6 +310,7 @@ public partial class MainWindowViewModel
         if (playlist is not null) SelectedPlaylist = Playlists.FirstOrDefault(x => x.Id == playlist.Id);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void OpenCreatePlaylistModal()
     {
         IsPlaylistEditMode = false;
@@ -308,6 +323,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(PlaylistSubmitText));
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void OpenEditPlaylistModal()
     {
         if (SelectedPlaylist is null) return;
@@ -321,6 +337,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(PlaylistSubmitText));
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private async Task SavePlaylistModalAsync()
     {
         if (string.IsNullOrWhiteSpace(NewPlaylistTitle)) return;
@@ -366,6 +383,7 @@ public partial class MainWindowViewModel
         NewPlaylistCoverPath = string.Empty;
     }
 
+    // Создает или добавляет новый элемент.
     public async Task AddTrackToPlaylistByIdsAsync(int songId, int playlistId)
     {
         var error = await _authSessionService.ApiClient.AddTrackToPlaylistAsync(playlistId, songId);
@@ -377,6 +395,7 @@ public partial class MainWindowViewModel
         Status = "Трек добавлен в плейлист.";
     }
 
+    // Создает или добавляет новый элемент.
     public async Task AddCurrentTrackToPlaylistAsync(int playlistId)
     {
         if (CurrentTrack is null)
@@ -392,6 +411,7 @@ public partial class MainWindowViewModel
         UpdatePlaylistTrackPresenceFlags();
     }
 
+    // Удаляет элемент из текущего контекста.
     private async Task DeleteSelectedPlaylistAsync()
     {
         if (SelectedPlaylist is null) return;
@@ -404,6 +424,7 @@ public partial class MainWindowViewModel
         _isInitializing = false;
     }
 
+    // Создает или добавляет новый элемент.
     private async Task AddSelectedTrackToPlaylistAsync()
     {
         if (SelectedTrack is null || SelectedPlaylist is null) return;
@@ -413,6 +434,7 @@ public partial class MainWindowViewModel
         await LoadPlaylistTracksAsync();
     }
 
+    // Создает или добавляет новый элемент.
     private async Task AddCurrentTrackToLikedAsync()
     {
         if (CurrentTrack is null)
@@ -426,6 +448,7 @@ public partial class MainWindowViewModel
         UpdatePlaylistTrackPresenceFlags();
     }
 
+    // Создает или добавляет новый элемент.
     private async Task AddCurrentTrackToPlaylistAsync()
     {
         if (CurrentTrack is null)
@@ -441,6 +464,7 @@ public partial class MainWindowViewModel
         await AddCurrentTrackToPlaylistAsync(playlist.Id);
     }
 
+    // Удаляет элемент из текущего контекста.
     private async Task RemoveSelectedPlaylistTrackAsync()
     {
         if (SelectedPlaylistTrack is null || SelectedPlaylist is null) return;
@@ -454,6 +478,7 @@ public partial class MainWindowViewModel
 
     public bool IsTrackInSelectedPlaylist(int trackId) => PlaylistTracks.Any(t => t.Id == trackId);
 
+    // Удаляет элемент из текущего контекста.
     public async Task RemoveTrackFromSelectedPlaylistByIdAsync(int trackId)
     {
         if (SelectedPlaylist is null)
@@ -470,6 +495,7 @@ public partial class MainWindowViewModel
         Status = $"Трек удален из плейлиста \"{SelectedPlaylist.Title}\".";
     }
 
+    // Удаляет элемент из текущего контекста.
     public async Task RemoveTrackFromLikedByIdAsync(int trackId)
     {
         if (trackId <= 0)
@@ -486,6 +512,7 @@ public partial class MainWindowViewModel
         Status = "Трек удален из любимых.";
     }
 
+    // Переключает раздел или состояние интерфейса.
     private async Task OpenSelectedArtistAsync()
     {
         var src = SelectedTrack ?? CurrentTrack;
@@ -493,6 +520,7 @@ public partial class MainWindowViewModel
         await OpenArtistByIdAsync(src.ArtistUserId);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private async Task OpenAlbumArtistAsync()
     {
         var artistUserId = SelectedAlbumTrack?.ArtistUserId;
@@ -508,6 +536,7 @@ public partial class MainWindowViewModel
         await OpenArtistByIdAsync(artistUserId.Value);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private async Task OpenSelectedAlbumAsync()
     {
         var albumId = SelectedTrack?.AlbumId ?? CurrentTrack?.AlbumId;
@@ -515,12 +544,14 @@ public partial class MainWindowViewModel
         await OpenAlbumByIdAsync(albumId.Value);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private async Task OpenSelectedArtistAlbumAsync()
     {
         if (SelectedArtistAlbum is null) return;
         await OpenAlbumByIdAsync(SelectedArtistAlbum.Id);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private async Task OpenAlbumByIdAsync(int albumId)
     {
         var (album, error) = await _authSessionService.ApiClient.GetAlbumAsync(albumId);
@@ -552,6 +583,7 @@ public partial class MainWindowViewModel
         RaiseCanExecutes();
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void UpdatePlaylistHeaderFromSelection()
     {
         if (SelectedPlaylist is null)
@@ -582,6 +614,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(HasPlaylistDescription));
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadHomeLibraryHighlightsAsync()
     {
         var (history, error) = await _authSessionService.ApiClient.GetRecentHistoryAsync(120);
@@ -646,6 +679,7 @@ public partial class MainWindowViewModel
             HomeRecentCollections.Add(collection);
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task BuildPersonalRecommendationsAsync()
     {
         var (allTracksRaw, allTracksError) = await _authSessionService.ApiClient.GetTracksAsync(null, null, "plays");
@@ -719,6 +753,7 @@ public partial class MainWindowViewModel
             HomeRecommendedAlbums.Add(album);
     }
 
+    // Выполняет внутреннюю логику метода.
     private HomeMediaCollectionItemDto? TryBuildHomeCollectionFromHistory(ListeningHistoryItemDto item)
     {
         if (item.SourceId is null or <= 0)
@@ -758,6 +793,7 @@ public partial class MainWindowViewModel
         return null;
     }
 
+    // Переключает раздел или состояние интерфейса.
     public async Task OpenHomeCollectionAsync(HomeMediaCollectionItemDto collection)
     {
         if (string.Equals(collection.Kind, "playlist", StringComparison.OrdinalIgnoreCase))
@@ -777,6 +813,7 @@ public partial class MainWindowViewModel
         await OpenAlbumByIdAsync(collection.Id);
     }
 
+    // Переключает раздел или состояние интерфейса.
     public async Task OpenPlaylistFromSearchAsync(PlaylistListItemDto playlist)
     {
         if (playlist is null)
@@ -805,6 +842,7 @@ public partial class MainWindowViewModel
         ActiveSection = "playlists";
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void UpdatePlaylistTrackPresenceFlags()
     {
         var currentTrackId = CurrentTrack?.Id;
@@ -822,6 +860,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Удаляет элемент из текущего контекста.
     private void RemoveDeletedPlaylistFromHomeCollections(int playlistId)
     {
         if (playlistId <= 0)

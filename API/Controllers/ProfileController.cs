@@ -22,6 +22,7 @@ public class ProfileController : ControllerBase
     }
 
     [HttpGet("me")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<ProfileMeDto>> GetMe()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -49,6 +50,7 @@ public class ProfileController : ControllerBase
     }
 
     [HttpPut("me")]
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task<ActionResult<ProfileMeDto>> UpdateMe([FromBody] UpdateProfileRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -98,6 +100,7 @@ public class ProfileController : ControllerBase
 
     [HttpPost("me/avatar")]
     [RequestSizeLimit(20_000_000)]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<MediaUploadResponseDto>> UploadAvatar(IFormFile file)
     {
         if (file is null || file.Length == 0)

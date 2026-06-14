@@ -30,18 +30,21 @@ public sealed class WindowNavigationService : INavigationService
         _showWindow = showWindow;
     }
 
+    // Переключает раздел или состояние интерфейса.
     public void OpenLogin()
     {
         var vm = new LoginViewModel(_authSessionService, _onAuthSuccess, OpenRegister);
         _showWindow(new LoginWindow { DataContext = vm });
     }
 
+    // Переключает раздел или состояние интерфейса.
     public void OpenRegister()
     {
         var vm = new RegisterViewModel(_authSessionService, _onAuthSuccess, OpenLogin);
         _showWindow(new RegisterWindow { DataContext = vm });
     }
 
+    // Переключает раздел или состояние интерфейса.
     public void OpenMain(AuthResponseDto authData)
     {
         var vm = new MainWindowViewModel(_authSessionService, authData, _audioPlayerService, _playerSettingsStore, _onLogout);

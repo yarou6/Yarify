@@ -19,6 +19,7 @@ public class AdminUsersController : ControllerBase
     }
 
     [HttpGet]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<AdminUserItemDto>>> GetUsers([FromQuery] string? query, [FromQuery] int take = 100)
     {
         var normalizedTake = Math.Clamp(take, 1, 500);
@@ -58,6 +59,7 @@ public class AdminUsersController : ControllerBase
     }
 
     [HttpGet("{userId:int}")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<AdminUserItemDto>> GetUser(int userId)
     {
         var user = await _db.Users
@@ -83,6 +85,7 @@ public class AdminUsersController : ControllerBase
     }
 
     [HttpPatch("{userId:int}/active")]
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task<ActionResult<AdminUserItemDto>> SetUserActive(int userId, [FromBody] SetUserActiveRequestDto request)
     {
         var user = await _db.Users

@@ -20,6 +20,7 @@ public sealed class PlayerSettingsStore
         _settingsPath = Path.Combine(baseDir, "player-settings.json");
     }
 
+    // Готовит и возвращает нужные данные.
     public async Task<PlayerSettingsSnapshot> LoadAsync()
     {
         if (!File.Exists(_settingsPath))
@@ -37,6 +38,7 @@ public sealed class PlayerSettingsStore
         }
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task SaveAsync(PlayerSettingsSnapshot snapshot)
     {
         await using var stream = File.Create(_settingsPath);

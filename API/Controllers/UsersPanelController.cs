@@ -27,6 +27,7 @@ public class UsersPanelController : ControllerBase
 
     [HttpPatch("role")]
     [Authorize(Roles = "User")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> UsersPanelRole(UsersPanelRoleRequestDto request)
     {
         if (string.IsNullOrWhiteSpace(request.ArtistName))
@@ -51,6 +52,7 @@ public class UsersPanelController : ControllerBase
 
     [HttpPatch("change-password")]
     [Authorize]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> ChangePassword(ChangePasswordRequestDto request)
     {
         if (request.NewPassword != request.ConfirmNewPassword)

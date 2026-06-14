@@ -37,6 +37,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
         }
     }
 
+    // Готовит и возвращает нужные данные.
     public void Load(string source)
     {
         Stop();
@@ -55,6 +56,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
         PositionChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Управляет воспроизведением в плеере.
     public void Play()
     {
         if (_output is null)
@@ -65,6 +67,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
         PlaybackStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Управляет воспроизведением в плеере.
     public void Pause()
     {
         if (_output is null)
@@ -75,6 +78,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
         PlaybackStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Управляет воспроизведением в плеере.
     public void Stop()
     {
         if (_output is null)
@@ -90,6 +94,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
         PositionChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Управляет воспроизведением в плеере.
     public void Seek(TimeSpan position)
     {
         if (_reader is null || !_reader.CanSeek)
@@ -105,6 +110,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
         PositionChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Выполняет внутреннюю логику метода.
     public void Dispose()
     {
         _positionTimer.Stop();
@@ -112,6 +118,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
         DisposePlayback();
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     private void OnPlaybackStopped(object? sender, StoppedEventArgs e)
     {
         if (sender is not IWavePlayer output || !ReferenceEquals(output, _output))
@@ -132,6 +139,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService
             TrackEnded?.Invoke(this, EventArgs.Empty);
     }
 
+    // Выполняет внутреннюю логику метода.
     private void DisposePlayback()
     {
         if (_output is not null)

@@ -27,6 +27,7 @@ public class ListeningEventsController : ControllerBase
     }
 
     [HttpPost("start")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<ListeningEventCreatedDto>> Start([FromBody] StartListeningEventRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -64,6 +65,7 @@ public class ListeningEventsController : ControllerBase
     }
 
     [HttpPatch("{eventId:long}/progress")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> Progress(long eventId, [FromBody] ListeningEventProgressRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -81,6 +83,7 @@ public class ListeningEventsController : ControllerBase
     }
 
     [HttpPost("{eventId:long}/complete")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> Complete(long eventId, [FromBody] CompleteListeningEventRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -110,6 +113,7 @@ public class ListeningEventsController : ControllerBase
 
     [HttpPost("rebuild-daily")]
     [Authorize(Roles = "Admin")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> RebuildDaily([FromQuery] int days = 30)
     {
         var normalizedDays = Math.Clamp(days, 1, 365);
@@ -153,6 +157,7 @@ public class ListeningEventsController : ControllerBase
         return Ok(new { rebuiltDays = normalizedDays, rows = grouped.Count });
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task CountPlayAsync(Listeningevent entity, int userId)
     {
         var song = await _db.Songs.FirstOrDefaultAsync(s => s.Id == entity.SongId);
@@ -197,6 +202,7 @@ public class ListeningEventsController : ControllerBase
             stat.UniqueListeners += 1;
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private static string? NormalizeSourceType(string? sourceType)
     {
         if (string.IsNullOrWhiteSpace(sourceType))

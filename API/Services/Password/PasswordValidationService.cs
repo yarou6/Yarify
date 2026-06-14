@@ -2,6 +2,7 @@
 
 public sealed class PasswordValidationService : IPasswordValidationService
 {
+    // Проверяет условие и возвращает результат проверки.
     public string? ValidatePasswordPolicy(string password)
     {
         if (password.Length < 8)

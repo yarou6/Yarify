@@ -20,11 +20,13 @@ public partial class App : Application
     private PlayerSettingsStore? _playerSettingsStore;
     private Window? _currentWindow;
 
+    // Выполняет внутреннюю логику метода.
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -46,6 +48,7 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
+    // Выполняет внутреннюю логику метода.
     private async void StartAsync()
     {
         if (_desktop is null || _authSessionService is null)
@@ -64,6 +67,7 @@ public partial class App : Application
         });
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task<AuthResponseDto?> TryRestoreSessionAsync(AuthSessionService authSessionService)
     {
         var session = await authSessionService.SessionStore.TryLoadAsync();
@@ -103,6 +107,7 @@ public partial class App : Application
         return data;
     }
 
+    // Выполняет внутреннюю логику метода.
     private AuthResponseDto RestoreFromLocalSession(AuthSessionService authSessionService, SessionSnapshot session)
     {
         authSessionService.ApiClient.SetAccessToken(session.AccessToken);
@@ -123,6 +128,7 @@ public partial class App : Application
         return restored;
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private static bool IsLikelyNetworkError(string? error)
     {
         if (string.IsNullOrWhiteSpace(error))
@@ -142,6 +148,7 @@ public partial class App : Application
                probe.Contains("сет", StringComparison.Ordinal);
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     private async Task HandleAuthSuccessAsync(AuthResponseDto authData)
     {
         if (_authSessionService is null)
@@ -155,6 +162,7 @@ public partial class App : Application
         await Dispatcher.UIThread.InvokeAsync(() => OpenMainWindow(authData));
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void OpenLoginWindow()
     {
         if (_authSessionService is null)
@@ -173,6 +181,7 @@ public partial class App : Application
         SwitchWindow(window);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void OpenRegisterWindow()
     {
         if (_authSessionService is null)
@@ -187,6 +196,7 @@ public partial class App : Application
         SwitchWindow(window);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void OpenMainWindow(AuthResponseDto authData)
     {
         if (_authSessionService is null || _audioPlayerService is null || _playerSettingsStore is null)
@@ -201,11 +211,13 @@ public partial class App : Application
         SwitchWindow(window);
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     private async Task OnLogoutAsync()
     {
         await Dispatcher.UIThread.InvokeAsync(OpenLoginWindow);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void SwitchWindow(Window nextWindow)
     {
         if (_desktop is null)
@@ -219,6 +231,7 @@ public partial class App : Application
         previousWindow?.Close();
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private static SessionSnapshot MapSession(AuthResponseDto authData)
     {
         return new SessionSnapshot
@@ -232,6 +245,7 @@ public partial class App : Application
         };
     }
 
+    // Выполняет внутреннюю логику метода.
     private void DisableAvaloniaDataAnnotationValidation()
     {
         var dataValidationPluginsToRemove =
@@ -243,6 +257,7 @@ public partial class App : Application
         }
     }
 
+    // Создает или добавляет новый элемент.
     private static IAudioPlayerService CreateAudioPlayerService()
     {
         return new NAudioPlayerService();

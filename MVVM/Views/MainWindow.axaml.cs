@@ -14,6 +14,7 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+    // Обрабатывает клик по карточке трека: правой кнопкой открывает контекстное меню, левой запускает трек.
     private async void TrackCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: TrackListItemDto track } control)
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
         await vm.PlayTrackFromUiAsync(track);
     }
 
+    // Собирает и показывает контекстное меню трека в зависимости от текущего раздела.
     private void ShowTrackContextMenu(Control anchor, TrackListItemDto track, MainWindowViewModel vm)
     {
         _activeTrackContextMenu?.Close();
@@ -66,6 +68,7 @@ public partial class MainWindow : Window
         _activeTrackContextMenu.Open(anchor);
     }
 
+    // Обрабатывает клик по карточке альбома и открывает его страницу.
     private async void AlbumCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: AlbumListItemDto album })
@@ -81,6 +84,7 @@ public partial class MainWindow : Window
         await vm.OpenAlbumByIdFromUiAsync(album.Id);
     }
 
+    // Обрабатывает клик по релизу артиста и открывает альбом или трек релиза.
     private async void ReleaseCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: ArtistReleaseItemDto release })
@@ -96,6 +100,7 @@ public partial class MainWindow : Window
         await vm.OpenArtistReleaseFromUiAsync(release);
     }
 
+    // Обрабатывает клик по карточке артиста и открывает его страницу.
     private async void ArtistCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: ArtistSearchItemDto artist })
@@ -111,6 +116,7 @@ public partial class MainWindow : Window
         await vm.OpenArtistByIdFromUiAsync(artist.ArtistUserId);
     }
 
+    // Открывает плейлист из результатов поиска.
     private async void SearchPlaylistCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: PlaylistListItemDto playlist } control)
@@ -127,6 +133,7 @@ public partial class MainWindow : Window
         
     }
 
+    // Подсвечивает возможность drag-and-drop трека в плейлист.
     private void PlaylistDropTarget_OnDragOver(object? sender, DragEventArgs e)
     {
         if (TryGetSongId(e.Data, out _))
@@ -141,6 +148,7 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    // Обрабатывает drop: добавляет перетаскиваемый трек в выбранный плейлист.
     private async void PlaylistDropTarget_OnDrop(object? sender, DragEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -156,6 +164,7 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    // Показывает предварительное время на слайдере прогресса при движении курсора.
     private void PlayerProgressSlider_OnPointerMoved(object? sender, PointerEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -173,12 +182,14 @@ public partial class MainWindow : Window
         vm.UpdateSeekPreview(previewSeconds);
     }
 
+    // Скрывает подсказку времени, когда курсор уходит со слайдера прогресса.
     private void PlayerProgressSlider_OnPointerExited(object? sender, PointerEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
             vm.HideSeekPreview();
     }
 
+    // Пытается извлечь songId из drag-and-drop данных.
     private static bool TryGetSongId(IDataObject data, out int songId)
     {
         songId = 0;
@@ -189,6 +200,7 @@ public partial class MainWindow : Window
 
         return int.TryParse(raw, out songId);
     }
+    // Открывает выбор файла аватарки и передает путь в VM для предпросмотра.
     private async void BrowseAvatar_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -202,6 +214,7 @@ public partial class MainWindow : Window
         }
     }
 
+    // Открывает выбор файла обложки альбома и сохраняет путь в VM.
     private async void BrowseAlbumCover_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -212,6 +225,7 @@ public partial class MainWindow : Window
             vm.AddTrackAlbumCoverPath = path;
     }
 
+    // Открывает выбор файла обложки трека и сохраняет путь в VM.
     private async void BrowseTrackCover_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -222,6 +236,7 @@ public partial class MainWindow : Window
             vm.AddTrackCoverPath = path;
     }
 
+    // Открывает выбор файла обложки плейлиста и сохраняет путь в VM.
     private async void BrowsePlaylistCover_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -232,6 +247,7 @@ public partial class MainWindow : Window
             vm.NewPlaylistCoverPath = path;
     }
 
+    // Открывает выбор аудиофайла и сохраняет путь в VM.
     private async void BrowseAudioFile_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -242,6 +258,7 @@ public partial class MainWindow : Window
             vm.AddTrackLocalPath = path;
     }
 
+    // Открывает страницу артиста из карточки трека.
     private async void TrackArtist_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (sender is not Control { DataContext: TrackListItemDto track })
@@ -254,6 +271,7 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    // Открывает страницу текущего артиста из блока "Сейчас играет".
     private async void CurrentArtist_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -267,6 +285,7 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    // Открывает альбом трека по клику на бейдж релиза.
     private async void TrackAlbumBadge_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (sender is not Control { DataContext: TrackListItemDto track })
@@ -279,6 +298,7 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    // Открывает коллекцию (альбом или плейлист) из блока недавних на главной.
     private async void HomeCollectionCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: HomeMediaCollectionItemDto collection } control)
@@ -294,6 +314,7 @@ public partial class MainWindow : Window
         await vm.OpenHomeCollectionAsync(collection);
     }
 
+    // Добавляет текущий трек в плейлист из меню у плеера.
     private async void AddCurrentTrackToPlaylistMenuItem_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (sender is not Control { Tag: int playlistId })
@@ -305,6 +326,7 @@ public partial class MainWindow : Window
         await vm.AddCurrentTrackToPlaylistAsync(playlistId);
     }
 
+    // Переключает центральный экран на раздел плейлистов по клику в сайдбаре.
     private void PlaylistItem_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
@@ -317,6 +339,7 @@ public partial class MainWindow : Window
         vm.ActiveSection = "playlists";
     }
 
+    // Открывает выбранный жанр из блока обзора.
     private async void OverviewGenreCard_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: OverviewGenreShelfDto shelf } control)
@@ -332,6 +355,7 @@ public partial class MainWindow : Window
         await vm.OpenOverviewGenreAsync(shelf.Genre);
     }
 
+    // Открывает страницу выбранного артиста из блока "Любимые артисты".
     private async void FollowingArtist_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: MVVM.Models.Profile.FollowingArtistItemDto artist } control)
@@ -347,6 +371,7 @@ public partial class MainWindow : Window
         await vm.OpenArtistByIdFromUiAsync(artist.ArtistUserId);
     }
 
+    // Открывает системный диалог выбора одного файла и возвращает локальный путь.
     private async Task<string?> PickSingleFilePathAsync(string title, IReadOnlyList<FilePickerFileType> filters)
     {
         var topLevel = GetTopLevel(this);
@@ -367,6 +392,7 @@ public partial class MainWindow : Window
         return file.TryGetLocalPath();
     }
 
+    // Возвращает набор фильтров для выбора файлов изображений.
     private static IReadOnlyList<FilePickerFileType> ImageFileTypes()
     {
         return new[]
@@ -378,6 +404,7 @@ public partial class MainWindow : Window
         };
     }
 
+    // Возвращает набор фильтров для выбора аудиофайлов.
     private static IReadOnlyList<FilePickerFileType> AudioFileTypes()
     {
         return new[]

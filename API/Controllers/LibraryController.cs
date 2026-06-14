@@ -26,6 +26,7 @@ public class LibraryController : ControllerBase
 
     [HttpGet("my/albums")]
     [Authorize(Roles = "Artist,Admin")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<ManageAlbumDto>>> GetMyAlbums()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -50,6 +51,7 @@ public class LibraryController : ControllerBase
 
     [HttpPost("my/albums")]
     [Authorize(Roles = "Artist,Admin")]
+    // Создает или добавляет новый элемент.
     public async Task<ActionResult<ManageAlbumDto>> CreateAlbum([FromBody] CreateAlbumRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -78,6 +80,7 @@ public class LibraryController : ControllerBase
 
     [HttpPut("my/albums/{albumId:int}")]
     [Authorize(Roles = "Artist,Admin")]
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task<ActionResult<ManageAlbumDto>> UpdateAlbum(int albumId, [FromBody] UpdateAlbumRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -107,6 +110,7 @@ public class LibraryController : ControllerBase
 
     [HttpDelete("my/albums/{albumId:int}")]
     [Authorize(Roles = "Artist,Admin")]
+    // Удаляет элемент из текущего контекста.
     public async Task<ActionResult> DeleteAlbum(int albumId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -128,6 +132,7 @@ public class LibraryController : ControllerBase
 
     [HttpGet("my/songs")]
     [Authorize(Roles = "Artist,Admin")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<ManageSongDto>>> GetMySongs([FromQuery] bool includeInactive = false)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -174,6 +179,7 @@ public class LibraryController : ControllerBase
 
     [HttpPost("my/songs")]
     [Authorize(Roles = "Artist,Admin")]
+    // Создает или добавляет новый элемент.
     public async Task<ActionResult<ManageSongDto>> CreateSong([FromBody] CreateSongRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -228,6 +234,7 @@ public class LibraryController : ControllerBase
 
     [HttpPut("my/songs/{songId:int}")]
     [Authorize(Roles = "Artist,Admin")]
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task<ActionResult<ManageSongDto>> UpdateSong(int songId, [FromBody] UpdateSongRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -270,6 +277,7 @@ public class LibraryController : ControllerBase
 
     [HttpDelete("my/songs/{songId:int}")]
     [Authorize(Roles = "Artist,Admin")]
+    // Удаляет элемент из текущего контекста.
     public async Task<ActionResult> DeleteSong(int songId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -290,6 +298,7 @@ public class LibraryController : ControllerBase
 
     [HttpPut("my/songs/{songId:int}/genres")]
     [Authorize(Roles = "Artist,Admin")]
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task<ActionResult<ManageSongDto>> UpdateSongGenres(int songId, [FromBody] UpdateSongGenresRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -324,6 +333,7 @@ public class LibraryController : ControllerBase
 
     [HttpGet("genres")]
     [Authorize(Roles = "Artist,Admin")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<GenreItemDto>>> GetGenres()
     {
         var genres = await _db.Genres
@@ -341,6 +351,7 @@ public class LibraryController : ControllerBase
 
     [HttpPost("genres")]
     [Authorize(Roles = "Artist,Admin")]
+    // Создает или добавляет новый элемент.
     public async Task<ActionResult<GenreItemDto>> CreateGenre([FromBody] GenreItemDto request)
     {
         var title = request.Title?.Trim();
@@ -361,6 +372,7 @@ public class LibraryController : ControllerBase
     [HttpPost("my/songs/{songId:int}/upload-audio")]
     [Authorize(Roles = "Artist,Admin")]
     [RequestSizeLimit(200_000_000)]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<MediaUploadResponseDto>> UploadSongAudio(int songId, IFormFile file)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -388,6 +400,7 @@ public class LibraryController : ControllerBase
     [HttpPost("my/songs/{songId:int}/upload-cover")]
     [Authorize(Roles = "Artist,Admin")]
     [RequestSizeLimit(20_000_000)]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<MediaUploadResponseDto>> UploadSongCover(int songId, IFormFile file)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -414,6 +427,7 @@ public class LibraryController : ControllerBase
     [HttpPost("my/albums/{albumId:int}/upload-cover")]
     [Authorize(Roles = "Artist,Admin")]
     [RequestSizeLimit(20_000_000)]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<MediaUploadResponseDto>> UploadAlbumCover(int albumId, IFormFile file)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -432,11 +446,13 @@ public class LibraryController : ControllerBase
         return Ok(uploaded);
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private static bool CanManageSongs(ClaimsPrincipal user)
     {
         return user.IsInRole("Artist") || user.IsInRole("Admin");
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private static string? NormalizeSourceType(string? sourceType)
     {
         if (string.IsNullOrWhiteSpace(sourceType))
@@ -448,6 +464,7 @@ public class LibraryController : ControllerBase
         return string.Equals(sourceType, "Online", StringComparison.OrdinalIgnoreCase) ? "Online" : "Local";
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task<ManageSongDto> BuildSongDtoAsync(int songId)
     {
         var song = await _db.Songs
@@ -478,6 +495,7 @@ public class LibraryController : ControllerBase
         };
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private static async Task<MediaUploadResponseDto> SaveFormFileAsync(IFormFile file, string folder, string entityType, int entityId)
     {
         var extension = Path.GetExtension(file.FileName);

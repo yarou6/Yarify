@@ -15,6 +15,7 @@ namespace MVVM.ViewModels;
 
 public partial class MainWindowViewModel
 {
+    // Запускает трек из UI и фиксирует контекст, чтобы корректно работали некст/очередь/история
     public async Task PlayTrackFromUiAsync(TrackListItemDto track)
     {
         var uiContext = ResolvePlaybackContextForUiTrack(track);
@@ -27,6 +28,7 @@ public partial class MainWindowViewModel
         await PlayTrackAsync(track);
     }
 
+    // Определяет, из какого раздела запущен трек (плейлист, альбом, лайки и т.д.)
     private string ResolvePlaybackContextForUiTrack(TrackListItemDto track)
     {
         if (IsTracksSection)
@@ -74,16 +76,19 @@ public partial class MainWindowViewModel
         return _playbackContextKey;
     }
 
+    // Переключает раздел или состояние интерфейса.
     public async Task OpenAlbumByIdFromUiAsync(int albumId)
     {
         await OpenAlbumByIdAsync(albumId);
     }
 
+    // Переключает раздел или состояние интерфейса.
     public async Task OpenArtistByIdFromUiAsync(int artistUserId)
     {
         await OpenArtistByIdAsync(artistUserId);
     }
 
+    // Открывает сингл трека, если у трека, ток мне впадлу было.
     public async Task OpenTrackAlbumFromUiAsync(TrackListItemDto? track)
     {
         if (track?.AlbumId is null or <= 0)
@@ -95,6 +100,7 @@ public partial class MainWindowViewModel
         await OpenAlbumByIdAsync(track.AlbumId.Value);
     }
 
+    // Переключает раздел или состояние интерфейса.
     public async Task OpenArtistReleaseFromUiAsync(ArtistReleaseItemDto release)
     {
         if (release is null)
@@ -118,18 +124,21 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Управляет воспроизведением в плеере.
     private Task PlayFromTracksAsync(TrackListItemDto? track)
     {
         _playbackContextKey = "tracks";
         return PlayTrackAsync(track);
     }
 
+    // Управляет воспроизведением в плеере.
     private Task PlayFromLikedAsync(TrackListItemDto? track)
     {
         _playbackContextKey = "liked";
         return PlayTrackAsync(track);
     }
 
+    // Управляет воспроизведением в плеере.
     private Task PlayFromQueueAsync(TrackListItemDto? track)
     {
         if (track is not null)
@@ -137,18 +146,21 @@ public partial class MainWindowViewModel
         return PlayTrackAsync(track);
     }
 
+    // Управляет воспроизведением в плеере.
     private Task PlayFromPlaylistAsync(TrackListItemDto? track)
     {
         _playbackContextKey = "playlist";
         return PlayTrackAsync(track);
     }
 
+    // Управляет воспроизведением в плеере.
     private Task PlayFromArtistAsync(TrackListItemDto? track)
     {
         _playbackContextKey = "artist";
         return PlayTrackAsync(track);
     }
 
+    // Готовит и возвращает нужные данные.
     private TrackListItemDto? GetUpcomingTrackPreview()
     {
         if (PlaybackMode == PlaybackMode.RepeatOne)
@@ -157,6 +169,7 @@ public partial class MainWindowViewModel
         return upcoming.FirstOrDefault()?.Track ?? CurrentTrack;
     }
 
+    // Строит список "что будет играть дальше:" из очереди и активного контекста.
     private IReadOnlyList<QueueItemDto> BuildUpcomingQueueItems()
     {
         if (PlaybackMode == PlaybackMode.RepeatOne)
@@ -246,6 +259,7 @@ public partial class MainWindowViewModel
         return result;
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void UpdateNowPlayingPreview()
     {
         OnPropertyChanged(nameof(NextTrackPreview));
@@ -255,6 +269,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(UpcomingQueueItems));
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     private async Task HandleTrackEndedAsync()
     {
         if (_isAdvancingTrack)
@@ -272,6 +287,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Готовит и возвращает нужные данные.
     private IReadOnlyList<TrackListItemDto> GetActivePlaybackList()
     {
         IReadOnlyList<TrackListItemDto>? byContext = _playbackContextKey switch
@@ -294,6 +310,7 @@ public partial class MainWindowViewModel
         return Tracks;
     }
 
+    // Выполняет внутреннюю логику метода.
     private void EnsurePlaybackContextForTrack(TrackListItemDto track)
     {
         var active = GetActivePlaybackList();
@@ -320,6 +337,7 @@ public partial class MainWindowViewModel
             _playbackContextKey = "tracks";
     }
 
+    // Выполняет внутреннюю логику метода.
     private static int IndexOfTrackById(IReadOnlyList<TrackListItemDto> list, int trackId)
     {
         for (var i = 0; i < list.Count; i++)
@@ -331,6 +349,7 @@ public partial class MainWindowViewModel
         return -1;
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task StartActiveListeningEventAsync(TrackListItemDto track)
     {
         var (sourceType, sourceId) = ResolveListeningSource(track);
@@ -347,6 +366,7 @@ public partial class MainWindowViewModel
         _lastListeningProgressSentAt = DateTime.MinValue;
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task ReportListeningProgressAsync()
     {
         if (_activeListeningEventId is null || CurrentTrack is null || CurrentTrack.Id != _activeListeningSongId)
@@ -364,6 +384,7 @@ public partial class MainWindowViewModel
         await _authSessionService.ApiClient.ReportListeningProgressAsync(_activeListeningEventId.Value, playedMs, null);
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task CompleteActiveListeningEventAsync(bool forceCompleted)
     {
         if (_activeListeningEventId is null || CurrentTrack is null || CurrentTrack.Id != _activeListeningSongId)
@@ -380,6 +401,7 @@ public partial class MainWindowViewModel
         _lastListeningProgressSentAt = DateTime.MinValue;
     }
 
+    // Центральный метод воспроизведения: грузит source, запускает плеер и обновляет UI/историю.
     private async Task PlayTrackAsync(TrackListItemDto? track)
     {
         if (track is null) return;
@@ -421,6 +443,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Управляет воспроизведением в плеере.
     private void PlayPause()
     {
         if (CurrentTrack is null) return;
@@ -428,6 +451,7 @@ public partial class MainWindowViewModel
         UpdatePlayback();
     }
 
+    // Управляет воспроизведением в плеере.
     private async Task PlayNextTrackAsync()
     {
         if (PlaybackMode == PlaybackMode.RepeatOne && CurrentTrack is not null) { await PlayTrackAsync(CurrentTrack); return; }
@@ -457,6 +481,7 @@ public partial class MainWindowViewModel
         await PlayTrackAsync(next);
     }
 
+    // Выполняет внутреннюю логику метода.
     private TrackListItemDto? NextShuffled(IReadOnlyList<TrackListItemDto> activeList)
     {
         EnsureShuffleOrder();
@@ -491,6 +516,7 @@ public partial class MainWindowViewModel
         return activeList.FirstOrDefault(t => t.Id == nextId);
     }
 
+    // Выполняет внутреннюю логику метода.
     private TrackListItemDto? NextFromTracks(IReadOnlyList<TrackListItemDto> activeList)
     {
         if (activeList.Count == 0)
@@ -509,6 +535,7 @@ public partial class MainWindowViewModel
         return activeList[idx];
     }
 
+    // Управляет воспроизведением в плеере.
     private void PlayPreviousTrack()
     {
         var activeList = GetActivePlaybackList();
@@ -536,6 +563,7 @@ public partial class MainWindowViewModel
 
     private void ToggleRepeatMode() => PlaybackMode = PlaybackMode switch { PlaybackMode.Normal => PlaybackMode.RepeatAll, PlaybackMode.RepeatAll => PlaybackMode.RepeatOne, _ => PlaybackMode.Normal };
 
+    // Выполняет внутреннюю логику метода.
     private void EnsureShuffleOrder(bool forceReshuffle = false)
     {
         var activeList = GetActivePlaybackList();
@@ -570,6 +598,7 @@ public partial class MainWindowViewModel
         _shuffleCursor = _shuffleTrackOrder.IndexOf(CurrentTrack.Id);
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void UpdateShuffleCursorForTrack(TrackListItemDto track)
     {
         if (!IsShuffleEnabled)
@@ -587,6 +616,7 @@ public partial class MainWindowViewModel
         _shuffleCursor = _shuffleTrackOrder.Count - 1;
     }
 
+    // Готовит и возвращает нужные данные.
     private IReadOnlyList<TrackListItemDto> GetShuffledUpcomingTracks(IReadOnlyList<TrackListItemDto> activeList)
     {
         if (_shuffleTrackOrder.Count == 0)
@@ -615,6 +645,7 @@ public partial class MainWindowViewModel
         return result;
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void UpdateCurrentArtistPlaysTotal(int artistUserId)
     {
         if (artistUserId <= 0)
@@ -654,6 +685,7 @@ public partial class MainWindowViewModel
         return ("Direct", null);
     }
 
+    // Управляет воспроизведением в плеере.
     private async Task PlayAlbumPrimaryAsync()
     {
         _playbackContextKey = "album";
@@ -672,11 +704,13 @@ public partial class MainWindowViewModel
         await PlayTrackAsync(SelectedAlbumTrack);
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private bool CanSelectPlan(SubscriptionPlanDto? plan)
     {
         return !IsBusy && plan is not null && CurrentSubscription?.PlanId != plan.Id;
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task SelectPlanAsync(SubscriptionPlanDto? plan)
     {
         if (plan is null)

@@ -75,11 +75,13 @@ public class RegisterViewModel : BaseVM
     public RelayCommand BackToLoginCommand { get; }
     public AsyncRelayCommand RegisterCommand { get; }
 
+    // Выполняет внутреннюю логику метода.
     private void BackToLogin()
     {
         _backToLogin();
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task RegisterAsync()
     {
         IsBusy = true;
@@ -108,6 +110,7 @@ public class RegisterViewModel : BaseVM
         IsBusy = false;
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     private void RaiseCommandCanExecuteChanged()
     {
         BackToLoginCommand.RaiseCanExecuteChanged();

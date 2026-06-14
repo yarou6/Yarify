@@ -8,10 +8,44 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="27637ad2-15bb-4656-97b4-91658e85949a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Yarify/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Yarify/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/AdminPanelRoleController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/AdminPanelRoleController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/AdminUsersController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/AdminUsersController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/AuthController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/AuthController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/LibraryController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/LibraryController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/ListeningEventsController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/ListeningEventsController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/LogoutController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/LogoutController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/LyricsController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/LyricsController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/PasswordRecoveryController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/PasswordRecoveryController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/PlayerController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/PlayerController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/ProfileController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/ProfileController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/SessionController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/SessionController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/SubscriptionsController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/SubscriptionsController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Controllers/UsersPanelController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Controllers/UsersPanelController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/DB/YarifyDbContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/DB/YarifyDbContext.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Extensions/ApiErrorExtensions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Extensions/ApiErrorExtensions.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Services/Password/PasswordValidationService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Services/Password/PasswordValidationService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Services/Token/AuthTokenService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Services/Token/AuthTokenService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/API/Services/UserContext/UserContextService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/API/Services/UserContext/UserContextService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/App.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/App.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Services/AuthApiClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Services/AuthApiClient.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Services/NAudioPlayerService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Services/NAudioPlayerService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Services/PlayerSettingsStore.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Services/PlayerSettingsStore.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Services/SessionStore.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Services/SessionStore.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Services/WindowNavigationService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Services/WindowNavigationService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Tools/BaseVM.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Tools/BaseVM.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/Tools/RelayCommand.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Tools/RelayCommand.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/LoginViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/LoginViewModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.ArtistAndAvatar.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.ArtistAndAvatar.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.CollectionsAndLibrary.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.CollectionsAndLibrary.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.InitializationAndSearch.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.InitializationAndSearch.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowViewModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.Playback.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.Playback.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.TrackCreationAndSettings.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/MainWindowSections/MainWindowViewModel.TrackCreationAndSettings.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MVVM/ViewModels/RegisterViewModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/ViewModels/RegisterViewModel.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MVVM/Views/MainWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Yarify.sln" beforeDir="false" afterPath="$PROJECT_DIR$/Yarify.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Yarify.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/Yarify.sln.DotSettings.user" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +56,11 @@
     <option name="firstShow" value="false" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
@@ -43,23 +82,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-    &quot;keyToString&quot;: {
-    &quot;.NET Launch Settings Profile.API http.executor&quot;: &quot;Run&quot;,
-    &quot;.NET Launch Settings Profile.API: IIS Express.executor&quot;: &quot;Debug&quot;,
-    &quot;.NET Launch Settings Profile.API: http.executor&quot;: &quot;Run&quot;,
-    &quot;.NET Project.MVVM.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
-    }
-    }</component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Launch Settings Profile.API http.executor": "Run",
+    ".NET Launch Settings Profile.API: IIS Express.executor": "Debug",
+    ".NET Launch Settings Profile.API: http.executor": "Run",
+    ".NET Project.MVVM.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "Units/integration-Tests",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.editor",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RunManager" selected="Compound.Unnamed">
     <configuration name="Main" type="CompoundRunConfigurationType">
       <method v="2" />
@@ -174,7 +213,13 @@
       <workItem from="1778146793543" duration="4940000" />
       <workItem from="1778168220207" duration="9243000" />
       <workItem from="1778323126744" duration="10116000" />
-      <workItem from="1778502988950" duration="7995000" />
+      <workItem from="1778502988950" duration="10848000" />
+      <workItem from="1778545997463" duration="1678000" />
+      <workItem from="1778662340716" duration="286000" />
+      <workItem from="1778684319032" duration="40000" />
+      <workItem from="1781094009470" duration="167000" />
+      <workItem from="1781114222922" duration="6213000" />
+      <workItem from="1781454248381" duration="3191000" />
     </task>
     <task id="LOCAL-00001" summary="Р РµР°Р»СЊРЅРѕ РЅРµ РґР°РєРёРЅСѓР» xd">
       <option name="closed" value="true" />
@@ -272,7 +317,23 @@
       <option name="project" value="LOCAL" />
       <updated>1778514566052</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="в">
+      <option name="closed" value="true" />
+      <created>1778514787579</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1778514787579</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Песенки">
+      <option name="closed" value="true" />
+      <created>1778547584846</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1778547584847</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -291,10 +352,11 @@
     <MESSAGE value="Почти конец" />
     <MESSAGE value="m" />
     <MESSAGE value="qq" />
-    <MESSAGE value="в" />
     <MESSAGE value="asd" />
     <MESSAGE value="s" />
-    <option name="LAST_COMMIT_MESSAGE" value="s" />
+    <MESSAGE value="в" />
+    <MESSAGE value="Песенки" />
+    <option name="LAST_COMMIT_MESSAGE" value="Песенки" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

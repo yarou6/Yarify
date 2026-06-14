@@ -6,6 +6,7 @@ namespace API.Extensions;
 
 public static class ApiErrorExtensions
 {
+    // Выполняет внутреннюю логику метода.
     public static IActionResult ApiError(this ControllerBase controller, int statusCode, string message)
     {
         return controller.StatusCode(statusCode, new ApiErrorResponse
@@ -14,6 +15,7 @@ public static class ApiErrorExtensions
         });
     }
 
+    // Выполняет внутреннюю логику метода.
     public static IActionResult ApiValidationError(this ControllerBase controller, ModelStateDictionary modelState)
     {
         var errors = modelState

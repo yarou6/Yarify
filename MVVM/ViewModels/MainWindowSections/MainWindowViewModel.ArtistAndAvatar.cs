@@ -15,6 +15,7 @@ namespace MVVM.ViewModels;
 
 public partial class MainWindowViewModel
 {
+    // Переключает раздел или состояние интерфейса.
     private async Task OpenArtistByIdAsync(int artistUserId)
     {
         if (artistUserId <= 0)
@@ -108,6 +109,7 @@ public partial class MainWindowViewModel
         RaiseCanExecutes();
     }
 
+    // Выполняет внутреннюю логику метода.
     private void NotifySections()
     {
         OnPropertyChanged(nameof(IsTracksSection));
@@ -122,6 +124,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(IsSettingsSection));
     }
 
+    // Выполняет внутреннюю логику метода.
     private void NotifySearchType()
     {
         OnPropertyChanged(nameof(IsSearchAllType));
@@ -131,6 +134,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(IsSearchPlaylistsType));
     }
 
+    // Выполняет внутреннюю логику метода.
     private void SeedRecentTracks()
     {
         if (RecentTracks.Count > 0)
@@ -140,6 +144,7 @@ public partial class MainWindowViewModel
             RecentTracks.Add(track);
     }
 
+    // Выполняет внутреннюю логику метода.
     private void RememberTrack(TrackListItemDto track)
     {
         var existing = RecentTracks.FirstOrDefault(x => x.Id == track.Id);
@@ -150,6 +155,7 @@ public partial class MainWindowViewModel
             RecentTracks.RemoveAt(RecentTracks.Count - 1);
     }
 
+    // Переключает раздел или состояние интерфейса.
     private async Task ToggleArtistFollowAsync()
     {
         if (_currentArtistUserId <= 0)
@@ -172,6 +178,7 @@ public partial class MainWindowViewModel
         RaiseCanExecutes();
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private void SetArtistReleaseFilter(string filter)
     {
         _artistReleaseFilter = filter;
@@ -184,6 +191,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(CanShowAllArtistReleases));
     }
 
+    // Переключает раздел или состояние интерфейса.
     private void OpenArtistReleasesModal()
     {
         if (FilteredArtistReleases.Count == 0)
@@ -191,6 +199,7 @@ public partial class MainWindowViewModel
         IsArtistReleasesModalOpen = true;
     }
 
+    // Выполняет внутреннюю логику метода.
     private static bool ContainsToken(string? source, params string[] tokens)
     {
         if (string.IsNullOrWhiteSpace(source))
@@ -205,6 +214,7 @@ public partial class MainWindowViewModel
         return false;
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private string? ResolveAvatarDisplaySource(string? avatarPath)
     {
         if (string.IsNullOrWhiteSpace(avatarPath))
@@ -246,6 +256,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     public void SetAvatarPreviewFromLocalPath(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
@@ -255,6 +266,7 @@ public partial class MainWindowViewModel
         ApplyAvatarBitmapFromResolvedSource();
     }
 
+    // Выполняет внутреннюю логику метода.
     private void ApplyAvatarBitmapFromResolvedSource()
     {
         try
@@ -297,6 +309,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Выполняет внутреннюю логику метода.
     private static string? TryResolveUploadLocalPath(string relativePath)
     {
         var startPoints = new List<string>
@@ -321,6 +334,7 @@ public partial class MainWindowViewModel
         return null;
     }
 
+    // Выполняет внутреннюю логику метода.
     private static string? TryResolveAvatarByFileName(string avatarPath)
     {
         try
@@ -358,6 +372,7 @@ public partial class MainWindowViewModel
     }
 
 
+    // Обновляет состояние и приводит данные к нужному виду.
     public void UpdateSeekPreview(double previewSeconds)
     {
         _seekPreviewSeconds = Math.Clamp(previewSeconds, 0, DurationSeconds);
@@ -370,6 +385,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(SeekPreviewText));
     }
 
+    // Выполняет внутреннюю логику метода.
     public void HideSeekPreview()
     {
         if (!_isSeekPreviewVisible) return;

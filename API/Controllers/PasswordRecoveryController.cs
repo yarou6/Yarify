@@ -28,6 +28,7 @@ public class PasswordRecoveryController : ControllerBase
 
     [HttpPost("forgot")]
     [AllowAnonymous]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<ForgotPasswordResponseDto>> ForgotPassword(ForgotPasswordRequestDto request)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Login == request.LoginOrEmail || u.Email == request.LoginOrEmail);
@@ -52,6 +53,7 @@ public class PasswordRecoveryController : ControllerBase
 
     [HttpPost("reset")]
     [AllowAnonymous]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> ResetPassword(ResetPasswordRequestDto request)
     {
         if (request.NewPassword != request.ConfirmNewPassword)

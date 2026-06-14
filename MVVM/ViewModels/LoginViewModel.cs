@@ -62,11 +62,13 @@ public class LoginViewModel : BaseVM
     public RelayCommand OpenRegisterCommand { get; }
     public AsyncRelayCommand LoginCommand { get; }
 
+    // Переключает раздел или состояние интерфейса.
     private void OpenRegister()
     {
         _openRegister();
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task LoginAsync()
     {
         IsBusy = true;
@@ -85,6 +87,7 @@ public class LoginViewModel : BaseVM
         IsBusy = false;
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     private void RaiseCommandCanExecuteChanged()
     {
         OpenRegisterCommand.RaiseCanExecuteChanged();

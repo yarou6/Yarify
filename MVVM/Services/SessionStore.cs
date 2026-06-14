@@ -15,6 +15,7 @@ public sealed class SessionStore
         _sessionFilePath = Path.Combine(dir, "session.json");
     }
 
+    // Выполняет внутреннюю логику метода.
     public async Task<SessionSnapshot?> TryLoadAsync()
     {
         if (!File.Exists(_sessionFilePath))
@@ -34,12 +35,14 @@ public sealed class SessionStore
         }
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task SaveAsync(SessionSnapshot session)
     {
         var json = JsonSerializer.Serialize(session, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(_sessionFilePath, json);
     }
 
+    // Выполняет внутреннюю логику метода.
     public Task ClearAsync()
     {
         if (File.Exists(_sessionFilePath))

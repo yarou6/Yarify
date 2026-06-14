@@ -23,6 +23,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("tracks")]
+    // Возвращает список треков с фильтрами по поиску, жанру и сортировке.
     public async Task<ActionResult<List<TrackListItemDto>>> GetTracks([FromQuery] string? query, [FromQuery] string? genre, [FromQuery] string? sort)
     {
         var tracksQuery = _db.Songs
@@ -64,6 +65,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("genres")]
+    // Возвращает все жанры для фильтров и форм выбора.
     public async Task<ActionResult<List<GenreItemDto>>> GetGenres()
     {
         var genres = await _db.Genres
@@ -75,6 +77,7 @@ public class PlayerController : ControllerBase
         return Ok(genres);
     }
     [HttpGet("home")]
+    // Собирает данные главной страницы: недавние, популярные, релизы и рекомендации.
     public async Task<ActionResult<PlayerHomeResponseDto>> GetHome()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -162,6 +165,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("history/recent")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<ListeningHistoryItemDto>>> GetRecentHistory([FromQuery] int take = 50)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -203,6 +207,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("history/summary")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<ListeningSummaryDto>> GetHistorySummary([FromQuery] int days = 30)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -235,6 +240,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("stats/top-tracks")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<TrackStatItemDto>>> GetTopTracks([FromQuery] int days = 30, [FromQuery] int take = 20)
     {
         var normalizedDays = Math.Clamp(days, 1, 365);
@@ -279,6 +285,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("public/playlists")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<PublicPlaylistItemDto>>> GetPublicPlaylists([FromQuery] string? query, [FromQuery] int take = 50)
     {
         var normalizedTake = Math.Clamp(take, 1, 200);
@@ -317,6 +324,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("public/playlists/{playlistId:int}")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<PublicPlaylistDetailsDto>> GetPublicPlaylist(int playlistId)
     {
         var playlist = await _db.Playlists
@@ -366,6 +374,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("public/artists")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<PublicArtistItemDto>>> GetPublicArtists([FromQuery] string? query, [FromQuery] int take = 50)
     {
         var normalizedTake = Math.Clamp(take, 1, 200);
@@ -402,6 +411,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("public/artists/{artistUserId:int}")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<ArtistDetailsDto>> GetPublicArtist(int artistUserId)
     {
         var artist = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == artistUserId && (u.IsActive == null || u.IsActive == true));
@@ -451,6 +461,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("search")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<SearchResponseDto>> Search([FromQuery] string? query, [FromQuery] int take = 20)
     {
         var q = query?.Trim();
@@ -532,6 +543,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("playlists/{playlistId:int}/tracks/bulk-add")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> BulkAddTracksToPlaylist(int playlistId, [FromBody] BulkPlaylistTracksRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -579,6 +591,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("playlists/{playlistId:int}/tracks/bulk-remove")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> BulkRemoveTracksFromPlaylist(int playlistId, [FromBody] BulkPlaylistTracksRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -612,6 +625,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("playlists/{playlistId:int}/tracks/reorder-all")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> ReorderAllPlaylistTracks(int playlistId, [FromBody] ReorderPlaylistTracksRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -638,6 +652,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("social/following")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<FollowingArtistItemDto>>> GetFollowingArtists()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -661,6 +676,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("social/followers")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<PublicArtistItemDto>>> GetFollowers([FromQuery] int? artistUserId = null)
     {
         var currentUserId = _userContext.GetRequiredUserId(User);
@@ -684,6 +700,7 @@ public class PlayerController : ControllerBase
         return Ok(followers);
     }
     [HttpGet("liked")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<TrackListItemDto>>> GetLikedTracks()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -712,6 +729,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("liked/{songId:int}")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> LikeTrack(int songId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -736,6 +754,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpDelete("liked/{songId:int}")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> UnlikeTrack(int songId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -750,6 +769,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("queue")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<QueueItemDto>>> GetQueue()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -781,6 +801,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("queue/{songId:int}")]
+    // Создает или добавляет новый элемент.
     public async Task<ActionResult> AddToQueue(int songId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -807,6 +828,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("queue/{songId:int}/next")]
+    // Создает или добавляет новый элемент.
     public async Task<ActionResult> AddToQueueNext(int songId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -831,6 +853,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpDelete("queue/{queueId:long}")]
+    // Удаляет элемент из текущего контекста.
     public async Task<ActionResult> RemoveFromQueue(long queueId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -855,6 +878,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("queue/{queueId:long}/move-up")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> MoveQueueUp(long queueId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -876,6 +900,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("queue/{queueId:long}/move-down")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> MoveQueueDown(long queueId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -896,6 +921,7 @@ public class PlayerController : ControllerBase
         return Ok();
     }
     [HttpPost("queue/clear")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> ClearQueue()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -906,6 +932,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("playlists")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<PlaylistListItemDto>>> GetPlaylists()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -929,6 +956,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("playlists")]
+    // Создает или добавляет новый элемент.
     public async Task<ActionResult<PlaylistListItemDto>> CreatePlaylist([FromBody] CreatePlaylistRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -959,6 +987,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPut("playlists/{playlistId:int}")]
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task<ActionResult<PlaylistListItemDto>> UpdatePlaylist(int playlistId, [FromBody] UpdatePlaylistRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -991,6 +1020,7 @@ public class PlayerController : ControllerBase
 
     [HttpPost("playlists/{playlistId:int}/upload-cover")]
     [RequestSizeLimit(20_000_000)]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<MediaUploadResponseDto>> UploadPlaylistCover(int playlistId, IFormFile file)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1009,6 +1039,7 @@ public class PlayerController : ControllerBase
         return Ok(uploaded);
     }
     [HttpDelete("playlists/{playlistId:int}")]
+    // Удаляет элемент из текущего контекста.
     public async Task<ActionResult> DeletePlaylist(int playlistId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1025,6 +1056,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("playlists/{playlistId:int}")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<PlaylistDetailsDto>> GetPlaylist(int playlistId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1083,6 +1115,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("playlists/{playlistId:int}/tracks/reorder")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> ReorderPlaylistTrack(int playlistId, [FromBody] ReorderPlaylistTrackRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1114,6 +1147,7 @@ public class PlayerController : ControllerBase
         return Ok();
     }
     [HttpGet("playlists/{playlistId:int}/tracks")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<TrackListItemDto>>> GetPlaylistTracks(int playlistId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1146,6 +1180,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("playlists/{playlistId:int}/tracks/{songId:int}")]
+    // Создает или добавляет новый элемент.
     public async Task<ActionResult> AddTrackToPlaylist(int playlistId, int songId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1181,6 +1216,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpDelete("playlists/{playlistId:int}/tracks/{songId:int}")]
+    // Удаляет элемент из текущего контекста.
     public async Task<ActionResult> RemoveTrackFromPlaylist(int playlistId, int songId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1200,6 +1236,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("artists/{artistUserId:int}/follow")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<FollowArtistStateDto>> FollowArtist(int artistUserId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1232,6 +1269,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpDelete("artists/{artistUserId:int}/follow")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<FollowArtistStateDto>> UnfollowArtist(int artistUserId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1248,6 +1286,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("artists/{artistUserId:int}/follow-state")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<FollowArtistStateDto>> GetFollowState(int artistUserId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1256,6 +1295,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("artists/{artistUserId:int}")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<ArtistDetailsDto>> GetArtist(int artistUserId)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1305,6 +1345,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpGet("albums/{albumId:int}")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<AlbumDetailsDto>> GetAlbum(int albumId)
     {
         var album = await _db.Albums
@@ -1338,6 +1379,7 @@ public class PlayerController : ControllerBase
     
 
     [HttpGet("playback/settings")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<PlaybackSettingsDto>> GetPlaybackSettings()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1352,6 +1394,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPut("playback/settings")]
+    // Обновляет состояние и приводит данные к нужному виду.
     public async Task<ActionResult<PlaybackSettingsDto>> UpdatePlaybackSettings([FromBody] UpdatePlaybackSettingsRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1376,6 +1419,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpPost("playback/next")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<NextTrackResponseDto>> GetNextTrack([FromBody] NextTrackRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -1560,6 +1604,7 @@ public class PlayerController : ControllerBase
         });
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task<Userplaybacksetting> GetOrCreatePlaybackSettingsAsync(int userId)
     {
         var settings = await _db.Userplaybacksettings.FirstOrDefaultAsync(x => x.UserId == userId);
@@ -1581,6 +1626,7 @@ public class PlayerController : ControllerBase
         return settings;
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private static string? NormalizeRepeatMode(string? repeatMode)
     {
         return repeatMode?.Trim().ToLowerInvariant() switch
@@ -1592,6 +1638,7 @@ public class PlayerController : ControllerBase
         };
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private static int? ResolveNextSongId(IReadOnlyList<int> orderedIds, int currentSongId, bool shuffleEnabled, bool loopAll)
     {
         if (orderedIds.Count == 0)
@@ -1625,6 +1672,7 @@ public class PlayerController : ControllerBase
         return loopAll ? orderedIds[0] : null;
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task<TrackListItemDto?> FindTrackByIdAsync(int songId)
     {
         return await _db.Songs
@@ -1634,6 +1682,7 @@ public class PlayerController : ControllerBase
             .Select(ToTrackDtoExpr())
             .FirstOrDefaultAsync();
     }
+    // Готовит и возвращает нужные данные.
     private async Task<FollowArtistStateDto> BuildFollowStateAsync(int subscriberUserId, int artistUserId)
     {
         var followersCount = await _db.Follows
@@ -1653,6 +1702,7 @@ public class PlayerController : ControllerBase
         };
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task ReindexPlaylistTracksAsync(List<Playlistsong> tracks)
     {
         for (var i = 0; i < tracks.Count; i++)
@@ -1663,6 +1713,7 @@ public class PlayerController : ControllerBase
         for (var i = 0; i < tracks.Count; i++)
             tracks[i].Position = i + 1;
     }
+    // Выполняет внутреннюю логику метода.
     private static Expression<Func<Song, TrackListItemDto>> ToTrackDtoExpr()
     {
         return s => new TrackListItemDto
@@ -1683,6 +1734,7 @@ public class PlayerController : ControllerBase
         };
     }
 
+    // Обновляет состояние и приводит данные к нужному виду.
     private static async Task<MediaUploadResponseDto> SaveFormFileAsync(IFormFile file, string folder, string entityType, int entityId)
     {
         var extension = Path.GetExtension(file.FileName);
@@ -1702,6 +1754,7 @@ public class PlayerController : ControllerBase
             ContentType = file.ContentType ?? "application/octet-stream"
         };
     }
+    // Выполняет внутреннюю логику метода.
     private async Task SwapQueuePositionsAsync(Playbackqueue first, Playbackqueue second)
     {
         var firstPosition = first.Position;

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -23,6 +23,7 @@ public abstract class BaseVM : INotifyPropertyChanged
         return true;
     }
 
+    // Обрабатывает событие и запускает нужное действие.
     protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

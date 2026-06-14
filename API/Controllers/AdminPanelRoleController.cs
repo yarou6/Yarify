@@ -19,6 +19,7 @@ public class AdminPanelRoleController : ControllerBase
 
     [HttpPatch("users/{userId:int}")]
     [Authorize(Roles = "Admin")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult> AdminPanelRole(int userId, AdminPanelRoleRequestDto request)
     {
         var targetRole = await _db.Roles.FirstOrDefaultAsync(r => r.Title == request.RoleTitle);

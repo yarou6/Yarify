@@ -4,6 +4,7 @@ namespace API.Services.UserContext;
 
 public sealed class UserContextService : IUserContextService
 {
+    // Готовит и возвращает нужные данные.
     public int GetRequiredUserId(ClaimsPrincipal user)
     {
         var id = user.FindFirstValue(ClaimTypes.NameIdentifier);

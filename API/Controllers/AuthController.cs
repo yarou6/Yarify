@@ -29,6 +29,7 @@ public class AuthController : ControllerBase
 
     [HttpPost("register")]
     [AllowAnonymous]
+    // Регистрирует нового пользователя, назначает базовую роль и сразу возвращает токены.
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterRequestDto request)
     {
         if (request.Password != request.ConfirmPassword)
@@ -95,6 +96,7 @@ public class AuthController : ControllerBase
 
     [HttpPost("login")]
     [AllowAnonymous]
+    // Проверяет логин/пароль и выдает новую авторизационную сессию.
     public async Task<ActionResult<AuthResponseDto>> Login(LoginRequestDto request)
     {
         var user = await AuthenticateUserAsync(request.Login, request.Password);
@@ -107,6 +109,7 @@ public class AuthController : ControllerBase
 
     [HttpPost("login-remember-me")]
     [AllowAnonymous]
+    // Логин с длинным refresh-токеном для режима "оставаться в системе".
     public async Task<ActionResult<AuthResponseDto>> LoginRememberMe(RememberMeLoginRequestDto request)
     {
         var user = await AuthenticateUserAsync(request.Login, request.Password);
@@ -118,6 +121,7 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    // Ищет пользователя и валидирует пароль и статус активности.
     private async Task<User?> AuthenticateUserAsync(string login, string password)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Login == login);
@@ -137,6 +141,7 @@ public class AuthController : ControllerBase
         return user;
     }
 
+    // Собирает итоговый ответ авторизации: access + refresh и сроки жизни.
     private async Task<AuthResponseDto> CreateAuthResponseAsync(User user, int? refreshLifetimeDaysOverride)
     {
         var access = await _authTokenService.CreateAccessTokenResponseAsync(user);

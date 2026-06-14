@@ -20,6 +20,7 @@ public sealed class AuthTokenService : IAuthTokenService
         _config = config;
     }
 
+    // Создает или добавляет новый элемент.
     public async Task<AuthResponseDto> CreateAccessTokenResponseAsync(User user)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == user.RoleId);
@@ -77,12 +78,14 @@ public sealed class AuthTokenService : IAuthTokenService
         return (refreshTokenRaw, entity);
     }
 
+    // Выполняет внутреннюю логику метода.
     public string HashToken(string token)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
         return Convert.ToHexString(bytes);
     }
 
+    // Создает или добавляет новый элемент.
     public string CreatePasswordResetToken(User user)
     {
         var issuer = _config["Jwt:Issuer"] ?? throw new InvalidOperationException("Не задан Jwt:Issuer.");
@@ -111,6 +114,7 @@ public sealed class AuthTokenService : IAuthTokenService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    // Проверяет условие и возвращает результат проверки.
     public ClaimsPrincipal ValidatePasswordResetToken(string token)
     {
         var key = _config["Jwt:PasswordResetKey"] ?? _config["Jwt:Key"] ?? throw new InvalidOperationException("Не задан Jwt:Key.");
@@ -137,12 +141,14 @@ public sealed class AuthTokenService : IAuthTokenService
         return principal;
     }
 
+    // Готовит и возвращает нужные данные.
     public string GetPasswordHashStamp(string passwordHash)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(passwordHash));
         return Convert.ToHexString(bytes);
     }
 
+    // Выполняет внутреннюю логику метода.
     private static string GenerateRefreshToken()
     {
         var bytes = RandomNumberGenerator.GetBytes(64);

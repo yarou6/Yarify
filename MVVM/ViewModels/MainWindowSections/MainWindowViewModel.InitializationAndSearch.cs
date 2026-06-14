@@ -15,6 +15,7 @@ namespace MVVM.ViewModels;
 
 public partial class MainWindowViewModel
 {
+    // Выполняет внутреннюю логику метода.
     private async Task InitializeAsync()
     {
         await LoadProfileAsync();
@@ -39,6 +40,7 @@ public partial class MainWindowViewModel
     }
 
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadProfileAsync()
     {
         var (profile, error) = await _authSessionService.ApiClient.GetProfileMeAsync();
@@ -61,6 +63,7 @@ public partial class MainWindowViewModel
         ApplyAvatarBitmapFromResolvedSource();
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadFollowingArtistsAsync()
     {
         var (items, error) = await _authSessionService.ApiClient.GetFollowingArtistsAsync();
@@ -88,6 +91,7 @@ public partial class MainWindowViewModel
         FollowingArtistsCount = items.Count;
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadCurrentSubscriptionAsync()
     {
         var (subscription, error) = await _authSessionService.ApiClient.GetMySubscriptionAsync();
@@ -96,6 +100,7 @@ public partial class MainWindowViewModel
 
         CurrentSubscription = subscription;
     }
+    // Выполняет внутреннюю логику метода.
     private void ApplyFixedHomeCategories()
     {
         GenreOptions.Clear();
@@ -103,6 +108,7 @@ public partial class MainWindowViewModel
         SelectedGenre = "Все";
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadTracksAsync()
     {
         IsBusy = true;
@@ -135,6 +141,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Проверяет условие и возвращает результат проверки.
     private bool CanShowTrackForCurrentSettings(TrackListItemDto track)
     {
         if (!AllowExplicitContent && track.Explicit)
@@ -142,6 +149,7 @@ public partial class MainWindowViewModel
         return true;
     }
 
+    // Готовит и возвращает нужные данные.
     private void RefreshOverviewGenresFromTracks()
     {
         var genres = Tracks
@@ -157,12 +165,14 @@ public partial class MainWindowViewModel
             GenreOptions.Add(genre);
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task SearchTracksAsync()
     {
         await LoadTracksAsync();
         ActiveSection = string.IsNullOrWhiteSpace(SearchText) ? "tracks" : "search";
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task RefreshOverviewShelvesAsync()
     {
         var playlistTrackIds = new HashSet<int>();
@@ -235,6 +245,7 @@ public partial class MainWindowViewModel
         }
     }
 
+    // Переключает раздел или состояние интерфейса.
     public async Task OpenOverviewGenreAsync(string genre)
     {
         SelectedGenre = string.IsNullOrWhiteSpace(genre) ? "Все" : genre;
@@ -250,6 +261,7 @@ public partial class MainWindowViewModel
         Status = string.IsNullOrWhiteSpace(error) ? $"Жанр: {SelectedGenre}" : $"Ошибка жанра: {error}";
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadSubscriptionPlansAsync()
     {
         var (plans, error) = await _authSessionService.ApiClient.GetSubscriptionPlansAsync();
@@ -271,6 +283,7 @@ public partial class MainWindowViewModel
         SelectedSubscriptionPlan = SubscriptionPlans.FirstOrDefault(p => p.IsFree) ?? SubscriptionPlans.FirstOrDefault();
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task LoadAddTrackGenresAsync()
     {
         var (genres, error) = await _authSessionService.ApiClient.GetGenresAsync();
@@ -290,6 +303,7 @@ public partial class MainWindowViewModel
         RefreshFilteredAddTrackGenres();
     }
 
+    // Готовит и возвращает нужные данные.
     private async Task BuildSearchResultsAsync()
     {
         SearchResultTracks.Clear();

@@ -23,6 +23,7 @@ public class SubscriptionsController : ControllerBase
 
     [HttpGet("plans")]
     [AllowAnonymous]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<List<SubscriptionPlanDto>>> GetPlans()
     {
         var plans = await _db.Subscriptionplans
@@ -44,6 +45,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpGet("me")]
+    // Готовит и возвращает нужные данные.
     public async Task<ActionResult<UserSubscriptionDto>> GetMySubscription()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -52,6 +54,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpPut("me")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<UserSubscriptionDto>> ChangeMySubscription([FromBody] ChangeSubscriptionRequestDto request)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -101,6 +104,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpPost("me/cancel")]
+    // Проверяет условие и возвращает результат проверки.
     public async Task<ActionResult<UserSubscriptionDto>> CancelMySubscription()
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -120,6 +124,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     [HttpPost("me/resume")]
+    // Выполняет внутреннюю логику метода.
     public async Task<ActionResult<UserSubscriptionDto>> ResumeMySubscription([FromQuery] bool autoRenew = true)
     {
         var userId = _userContext.GetRequiredUserId(User);
@@ -151,6 +156,7 @@ public class SubscriptionsController : ControllerBase
         return Ok(await EnsureUserSubscriptionAsync(userId));
     }
 
+    // Выполняет внутреннюю логику метода.
     private async Task<UserSubscriptionDto> EnsureUserSubscriptionAsync(int userId)
     {
         var userPlan = await _db.Userplans
